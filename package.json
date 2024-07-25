@@ -1,8 +1,9 @@
 {
-  "name": "gl",
+  "name": "supreium-headless-gl",
   "version": "8.0.2",
   "description": "Creates a WebGL context without a window",
   "main": "index.js",
+  "types": "index.d.ts",
   "directories": {
     "test": "test"
   },
@@ -42,7 +43,7 @@
   "keywords": [
     "webgl",
     "opengl",
-    "gl",
+    "supreium-headless-gl",
     "headless",
     "server",
     "gpgpu"

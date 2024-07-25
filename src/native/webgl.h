@@ -13,8 +13,10 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
 
-enum GLObjectType {
+enum GLObjectType
+{
   GLOBJECT_TYPE_BUFFER,
   GLOBJECT_TYPE_FRAMEBUFFER,
   GLOBJECT_TYPE_PROGRAM,
@@ -24,7 +26,8 @@ enum GLObjectType {
   GLOBJECT_TYPE_VERTEX_ARRAY,
 };
 
-enum GLContextState {
+enum GLContextState
+{
   GLCONTEXT_STATE_INIT,
   GLCONTEXT_STATE_OK,
   GLCONTEXT_STATE_DESTROY,
@@ -33,94 +36,103 @@ enum GLContextState {
 
 typedef std::pair<GLuint, GLObjectType> GLObjectReference;
 
-struct WebGLRenderingContext : public node::ObjectWrap {
+struct WebGLRenderingContext : public node::ObjectWrap
+{
 
-  //The underlying OpenGL context
-  static bool       HAS_DISPLAY;
+  // The underlying OpenGL context
+  static bool HAS_DISPLAY;
   static EGLDisplay DISPLAY;
 
-
   EGLContext context;
-  EGLConfig  config;
+  EGLConfig config;
   EGLSurface surface;
-  GLContextState  state;
+  GLContextState state;
 
-  //Pixel storage flags
-  bool  unpack_flip_y;
-  bool  unpack_premultiply_alpha;
+  // Pixel storage flags
+  bool unpack_flip_y;
+  bool unpack_premultiply_alpha;
   GLint unpack_colorspace_conversion;
   GLint unpack_alignment;
 
-  //A list of object references, need do destroy them at program exit
-  std::map< std::pair<GLuint, GLObjectType>, bool > objects;
-  void registerGLObj(GLObjectType type, GLuint obj) {
+  // A list of object references, need do destroy them at program exit
+  std::map<std::pair<GLuint, GLObjectType>, bool> objects;
+  void registerGLObj(GLObjectType type, GLuint obj)
+  {
     objects[std::make_pair(obj, type)] = true;
   }
-  void unregisterGLObj(GLObjectType type, GLuint obj) {
+  void unregisterGLObj(GLObjectType type, GLuint obj)
+  {
     objects.erase(std::make_pair(obj, type));
   }
 
-  //Context list
+  // Context list
   WebGLRenderingContext *next, *prev;
-  static WebGLRenderingContext* CONTEXT_LIST_HEAD;
-  void registerContext() {
-    if(CONTEXT_LIST_HEAD) {
+  static WebGLRenderingContext *CONTEXT_LIST_HEAD;
+  void registerContext()
+  {
+    if (CONTEXT_LIST_HEAD)
+    {
       CONTEXT_LIST_HEAD->prev = this;
     }
     next = CONTEXT_LIST_HEAD;
     prev = NULL;
     CONTEXT_LIST_HEAD = this;
   }
-  void unregisterContext() {
-    if(next) {
+  void unregisterContext()
+  {
+    if (next)
+    {
       next->prev = this->prev;
     }
-    if(prev) {
+    if (prev)
+    {
       prev->next = this->next;
     }
-    if(CONTEXT_LIST_HEAD == this) {
+    if (CONTEXT_LIST_HEAD == this)
+    {
       CONTEXT_LIST_HEAD = this->next;
     }
     next = prev = NULL;
   }
 
-  //Constructor
+  // Constructor
   WebGLRenderingContext(
-    int width,
-    int height,
-    bool alpha,
-    bool depth,
-    bool stencil,
-    bool antialias,
-    bool premultipliedAlpha,
-    bool preserveDrawingBuffer,
-    bool preferLowPowerToHighPerformance,
-    bool failIfMajorPerformanceCaveat);
+      int width,
+      int height,
+      bool alpha,
+      bool depth,
+      bool stencil,
+      bool antialias,
+      bool premultipliedAlpha,
+      bool preserveDrawingBuffer,
+      bool preferLowPowerToHighPerformance,
+      bool failIfMajorPerformanceCaveat);
   virtual ~WebGLRenderingContext();
 
-  //Context validation
-  static WebGLRenderingContext* ACTIVE;
+  // Context validation
+  static WebGLRenderingContext *ACTIVE;
   bool setActive();
 
-  //Unpacks a buffer full of pixels into memory
-  unsigned char* unpackPixels(
-    GLenum type,
-    GLenum format,
-    GLint width,
-    GLint height,
-    unsigned char* pixels);
+  // Unpacks a buffer full of pixels into memory
+  unsigned char *unpackPixels(
+      GLenum type,
+      GLenum format,
+      GLint width,
+      GLint height,
+      GLint depth,
+      unsigned char *pixels);
 
-  //Error handling
+  // Error handling
   GLenum lastError;
   void setError(GLenum error);
   GLenum getError();
   static NAN_METHOD(SetError);
   static NAN_METHOD(GetError);
 
-  //Preferred depth format
+  // Preferred depth format
   GLenum preferredDepth;
 
-  //Destructors
+  // Destructors
   void dispose();
 
   static NAN_METHOD(DisposeAll);
@@ -273,9 +285,14 @@ struct WebGLRenderingContext : public node::ObjectWrap {
   static NAN_METHOD(DeleteVertexArrayOES);
   static NAN_METHOD(IsVertexArrayOES);
 
+  // WebGL2
+  static NAN_METHOD(TexImage3D);
+  static NAN_METHOD(RenderbufferStorageMultisample);
+  static NAN_METHOD(DrawBuffers);
+
   void initPointers();
 
-  #include "procs.h"
+#include "procs.h"
 };
 
 #endif

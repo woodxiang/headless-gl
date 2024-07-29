@@ -287,8 +287,14 @@ struct WebGLRenderingContext : public node::ObjectWrap
 
   // WebGL2
   static NAN_METHOD(TexImage3D);
+  static NAN_METHOD(TexStorage2D);
   static NAN_METHOD(RenderbufferStorageMultisample);
   static NAN_METHOD(DrawBuffers);
+  static NAN_METHOD(CreateVertexArray);
+  static NAN_METHOD(DeleteVertexArray);
+  static NAN_METHOD(IsVertexArray);
+  static NAN_METHOD(BindVertexArray);
+  static NAN_METHOD(BlitFramebuffer);
 
   void initPointers();
 

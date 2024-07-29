@@ -162,9 +162,18 @@ NAN_MODULE_INIT(Init)
     JS_GL_METHOD("isVertexArrayOES", IsVertexArrayOES);
     JS_GL_METHOD("bindVertexArrayOES", BindVertexArrayOES);
 
+    /**
+     * WegGL2 methods.
+     */
     JS_GL_METHOD("texImage3D", TexImage3D);
+    JS_GL_METHOD("texStorage2D", TexStorage2D);
     JS_GL_METHOD("renderbufferStorageMultisample", RenderbufferStorageMultisample);
     JS_GL_METHOD("drawBuffers", DrawBuffers);
+    JS_GL_METHOD("createVertexArray", CreateVertexArray);
+    JS_GL_METHOD("deleteVertexArray", DeleteVertexArray);
+    JS_GL_METHOD("isVertexArray", IsVertexArray);
+    JS_GL_METHOD("bindVertexArray", BindVertexArray);
+    JS_GL_METHOD("blitFramebuffer", BlitFramebuffer);
 
     // Windows defines a macro called NO_ERROR which messes this up
     Nan::SetPrototypeTemplate(
@@ -465,6 +474,9 @@ NAN_MODULE_INIT(Init)
     JS_GL_CONSTANT(MAX_RENDERBUFFER_SIZE);
     JS_GL_CONSTANT(INVALID_FRAMEBUFFER_OPERATION);
 
+    /**
+     * WebGL2 constants
+     */
     JS_GL_CONSTANT(READ_BUFFER);
     JS_GL_CONSTANT(UNPACK_ROW_LENGTH);
     JS_GL_CONSTANT(UNPACK_SKIP_ROWS);
@@ -725,6 +737,8 @@ NAN_MODULE_INIT(Init)
     JS_GL_CONSTANT(TEXTURE_IMMUTABLE_FORMAT);
     JS_GL_CONSTANT(MAX_ELEMENT_INDEX);
     JS_GL_CONSTANT(TEXTURE_IMMUTABLE_LEVELS);
+
+    JS_GL_CONSTANT(RGBA8);
 
     /* WebGL-specific enums */
     JS_CONSTANT(STENCIL_INDEX, 0x1901);

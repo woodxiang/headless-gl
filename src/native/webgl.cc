@@ -211,7 +211,7 @@ void WebGLRenderingContext::dispose()
       (inst->glDeleteTextures)(1, &obj);
       break;
     case GLOBJECT_TYPE_VERTEX_ARRAY:
-      (inst->glDeleteVertexArraysOES)(1, &obj);
+      (inst->glDeleteVertexArrays)(1, &obj);
       break;
     default:
       break;
@@ -2304,6 +2304,17 @@ GL_METHOD(TexImage3D)
   }
 }
 
+GL_METHOD(TexStorage2D)
+{
+  GL_BOILERPLATE;
+  GLenum target = Nan::To<int32_t>(info[0]).ToChecked();
+  GLint level = Nan::To<int32_t>(info[1]).ToChecked();
+  GLenum internalformat = Nan::To<int32_t>(info[2]).ToChecked();
+  GLsizei width = Nan::To<int32_t>(info[3]).ToChecked();
+  GLsizei height = Nan::To<int32_t>(info[4]).ToChecked();
+  (inst->glTexStorage2D)(target, level, internalformat, width, height);
+}
+
 GL_METHOD(RenderbufferStorageMultisample)
 {
   GL_BOILERPLATE;
@@ -2343,4 +2354,60 @@ GL_METHOD(DrawBuffers)
   (inst->glDrawBuffers)(numBuffers, buffers);
 
   delete[] buffers;
+}
+
+GL_METHOD(CreateVertexArray)
+{
+  GL_BOILERPLATE;
+
+  GLuint array;
+  (inst->glGenVertexArrays)(1, &array);
+  inst->registerGLObj(GLOBJECT_TYPE_VERTEX_ARRAY, array);
+
+  info.GetReturnValue().Set(Nan::New<v8::Integer>(array));
+}
+
+GL_METHOD(DeleteVertexArray)
+{
+  GL_BOILERPLATE;
+
+  GLuint array = Nan::To<uint32_t>(info[0]).ToChecked();
+  inst->unregisterGLObj(GLOBJECT_TYPE_VERTEX_ARRAY, array);
+
+  (inst->glDeleteVertexArrays)(1, &array);
+}
+
+GL_METHOD(IsVertexArray)
+{
+  GL_BOILERPLATE;
+
+  info.GetReturnValue().Set(Nan::New<v8::Boolean>(
+      (inst->glIsVertexArray)(Nan::To<uint32_t>(info[0]).ToChecked()) != 0));
+}
+
+GL_METHOD(BindVertexArray)
+{
+  GL_BOILERPLATE;
+
+  GLuint array = Nan::To<uint32_t>(info[0]).ToChecked();
+
+  (inst->glBindVertexArray)(array);
+}
+
+GL_METHOD(BlitFramebuffer)
+{
+  GL_BOILERPLATE;
+  // srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1,
+  GLint srcX0 = Nan::To<int32_t>(info[0]).ToChecked();
+  GLint srcY0 = Nan::To<int32_t>(info[1]).ToChecked();
+  GLint srcX1 = Nan::To<int32_t>(info[2]).ToChecked();
+  GLint srcY1 = Nan::To<int32_t>(info[3]).ToChecked();
+  GLint dstX0 = Nan::To<int32_t>(info[4]).ToChecked();
+  GLint dstY0 = Nan::To<int32_t>(info[5]).ToChecked();
+  GLint dstX1 = Nan::To<int32_t>(info[6]).ToChecked();
+  GLint dstY1 = Nan::To<int32_t>(info[7]).ToChecked();
+  GLuint mask = Nan::To<uint32_t>(info[8]).ToChecked();
+  GLuint filter = Nan::To<uint32_t>(info[9]).ToChecked();
+
+  (inst->glBlitFramebuffer)(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 }

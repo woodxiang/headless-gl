@@ -58,6 +58,7 @@ const {
 } = require("./webgl-shader-precision-format");
 const { WebGLTexture } = require("./webgl-texture");
 const { WebGLUniformLocation } = require("./webgl-uniform-location");
+const { WebGLVertexArrayObject } = require("./webgl-vertex-array-object.js");
 
 // These are defined by the WebGL spec
 const MAX_UNIFORM_LENGTH = 256;
@@ -934,9 +935,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       source = "#undef GL_OES_standard_derivatives\n" + source;
     }
 
-    return this._extensions.webgl_draw_buffers
-      ? source
-      : "#define gl_MaxDrawBuffers 1\n" + source; // eslint-disable-line
+    return source;
   }
 
   _beginAttrib0Hack() {
@@ -4064,6 +4063,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     internalFormat |= 0;
     width |= 0;
     height |= 0;
+    depth |= 0;
     border |= 0;
     format |= 0;
     type |= 0;
@@ -4071,7 +4071,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (typeof pixels !== "object" && pixels !== undefined) {
       throw new TypeError(
-        "texImage2D(GLenum, GLint, GLenum, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)"
+        "texImage3D(GLenum, GLint, GLenum, GLint, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)"
       );
     }
 
@@ -4121,6 +4121,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       internalFormat,
       width,
       height,
+      depth,
       border,
       format,
       type,
@@ -4152,6 +4153,77 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         this._updateFramebufferAttachments(this._activeFramebuffer);
       }
     }
+  }
+
+  createVertexArray() {
+    const id = super.createVertexArray();
+    if (id <= 0) return null;
+    const webGLVertexArrayObject = new WebGLVertexArrayObject(id, this);
+    return webGLVertexArrayObject;
+  }
+
+  bindVertexArray(object) {
+    if (!checkObject(object)) {
+      throw new TypeError("bindVertexArray(WebGLVertexArrayObject");
+    }
+
+    if (!object) {
+      super.bindVertexArray(0);
+    } else if (object._pendingDelete) {
+      return;
+    } else if (this._checkWrapper(object, WebGLVertexArrayObject)) {
+      super.bindVertexArray(object._ | 0);
+    } else {
+      return;
+    }
+
+    const active = this._activeVertexArray;
+    if (active !== object) {
+      if (active) {
+        active._refCount -= 1;
+        active._checkDelete();
+      }
+      if (object) {
+        object._refCount += 1;
+      }
+    }
+
+    this._activeVertexArray = object;
+  }
+
+  deleteVertexArray(object) {
+    if (!checkObject(object)) {
+      throw new TypeError("deleteVertexArray(WebGLVertexArrayObject)");
+    }
+
+    if (
+      !(object instanceof WebGLVertexArrayObject && this._checkOwns(object))
+    ) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+  }
+
+  isVertexArray(object) {
+    if (!this._isObject(object, "isVertexArray", WebGLVertexArrayObject))
+      return false;
+
+    return super.isVertexArray(object._ | 0);
+  }
+
+  texStorage2D(target, levels, internalformat, width, height) {
+    target |= 0;
+    levels |= 0;
+    internalformat |= 0;
+    width |= 0;
+    height |= 0;
+
+    if (target !== gl.TEXTURE_2D && target !== gl.TEXTURE_CUBE_MAP) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+
+    super.texStorage2D(target, levels, internalformat, width, height);
   }
 
   renderbufferStorageMultisample(
@@ -4254,7 +4326,6 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   drawBuffers(buffers) {
-    // TODO: implement it.
     if (!Array.isArray(buffers)) {
       this.setError(gl.INVALID_VALUE);
       return;
@@ -4265,6 +4336,35 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     super.drawBuffers(buffers);
+  }
+
+  blitFramebuffer(
+    srcX0,
+    srcY0,
+    srcX1,
+    srcY1,
+    dstX0,
+    dstY0,
+    dstX1,
+    dstY1,
+    mask,
+    filter
+  ) {
+    if (!this._checkStencilState()) {
+      return;
+    }
+    super.blitFramebuffer(
+      srcX0,
+      srcY0,
+      srcX1,
+      srcY1,
+      dstX0,
+      dstY0,
+      dstX1,
+      dstY1,
+      mask,
+      filter
+    );
   }
 }
 

@@ -1,5 +1,5 @@
-const { Linkable } = require("./linkable");
-const { gl } = require("./native-gl");
+const { Linkable } = require('./linkable');
+const { gl } = require('./native-gl');
 
 class WebGLRenderbuffer extends Linkable {
   constructor(_, ctx) {

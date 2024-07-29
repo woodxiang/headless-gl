@@ -5,7 +5,7 @@ function createContext(width, height, options) {
     return null;
   }
 
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   if (!canvas) {
     return null;
   }
@@ -18,13 +18,13 @@ function createContext(width, height, options) {
   canvas.height = height;
 
   try {
-    gl = canvas.getContext("webgl2", options);
+    gl = canvas.getContext('webgl2', options);
   } catch (e) {
     try {
-      gl = canvas.getContext("webgl", options);
+      gl = canvas.getContext('webgl', options);
     } catch (e) {
       try {
-        gl = canvas.getContext("experimental-webgl", options);
+        gl = canvas.getContext('experimental-webgl', options);
       } catch (e) {
         return null;
       }
@@ -34,7 +34,7 @@ function createContext(width, height, options) {
   const _getExtension = gl.getExtension;
   const extDestroy = {
     destroy: function () {
-      const loseContext = _getExtension.call(gl, "WEBGL_lose_context");
+      const loseContext = _getExtension.call(gl, 'WEBGL_lose_context');
       if (loseContext) {
         loseContext.loseContext();
       }
@@ -49,20 +49,17 @@ function createContext(width, height, options) {
   };
 
   const _supportedExtensions = gl.getSupportedExtensions().slice();
-  _supportedExtensions.push(
-    "STACKGL_destroy_context",
-    "STACKGL_resize_drawingbuffer"
-  );
+  _supportedExtensions.push('STACKGL_destroy_context', 'STACKGL_resize_drawingbuffer');
   gl.getSupportedExtensions = function () {
     return _supportedExtensions.slice();
   };
 
   gl.getExtension = function (extName) {
     const name = extName.toLowerCase();
-    if (name === "stackgl_resize_drawingbuffer") {
+    if (name === 'stackgl_resize_drawingbuffer') {
       return extResize;
     }
-    if (name === "stackgl_destroy_context") {
+    if (name === 'stackgl_destroy_context') {
       return extDestroy;
     }
     return _getExtension.call(gl, extName);

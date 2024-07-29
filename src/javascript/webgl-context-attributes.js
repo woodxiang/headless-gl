@@ -1,5 +1,5 @@
 class WebGLContextAttributes {
-  constructor (
+  constructor(
     alpha,
     depth,
     stencil,
@@ -7,16 +7,17 @@ class WebGLContextAttributes {
     premultipliedAlpha,
     preserveDrawingBuffer,
     preferLowPowerToHighPerformance,
-    failIfMajorPerformanceCaveat) {
-    this.alpha = alpha
-    this.depth = depth
-    this.stencil = stencil
-    this.antialias = antialias
-    this.premultipliedAlpha = premultipliedAlpha
-    this.preserveDrawingBuffer = preserveDrawingBuffer
-    this.preferLowPowerToHighPerformance = preferLowPowerToHighPerformance
-    this.failIfMajorPerformanceCaveat = failIfMajorPerformanceCaveat
+    failIfMajorPerformanceCaveat
+  ) {
+    this.alpha = alpha;
+    this.depth = depth;
+    this.stencil = stencil;
+    this.antialias = antialias;
+    this.premultipliedAlpha = premultipliedAlpha;
+    this.preserveDrawingBuffer = preserveDrawingBuffer;
+    this.preferLowPowerToHighPerformance = preferLowPowerToHighPerformance;
+    this.failIfMajorPerformanceCaveat = failIfMajorPerformanceCaveat;
   }
 }
 
-module.exports = { WebGLContextAttributes }
+module.exports = { WebGLContextAttributes };

@@ -4,6 +4,7 @@ npm-debug.log
 .idea
 Debug
 *.log
+*.pdb
 node_modules
 prebuilds/*
 angle/build/*

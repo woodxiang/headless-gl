@@ -1,34 +1,18 @@
-const bits = require("bit-twiddle");
-const tokenize = require("glsl-tokenizer/string");
-const HEADLESS_VERSION = require("../../package.json").version;
-const { gl, NativeWebGLRenderingContext, NativeWebGL } = require("./native-gl");
-const {
-  getANGLEInstancedArrays,
-} = require("./extensions/angle-instanced-arrays");
-const {
-  getOESElementIndexUint,
-} = require("./extensions/oes-element-index-unit");
-const {
-  getOESStandardDerivatives,
-} = require("./extensions/oes-standard-derivatives");
-const { getOESTextureFloat } = require("./extensions/oes-texture-float");
-const {
-  getOESTextureFloatLinear,
-} = require("./extensions/oes-texture-float-linear");
-const {
-  getSTACKGLDestroyContext,
-} = require("./extensions/stackgl-destroy-context");
-const {
-  getSTACKGLResizeDrawingBuffer,
-} = require("./extensions/stackgl-resize-drawing-buffer");
-const { getWebGLDrawBuffers } = require("./extensions/webgl-draw-buffers");
-const { getEXTBlendMinMax } = require("./extensions/ext-blend-minmax");
-const {
-  getEXTTextureFilterAnisotropic,
-} = require("./extensions/ext-texture-filter-anisotropic");
-const {
-  getOESVertexArrayObject,
-} = require("./extensions/oes-vertex-array-object");
+const bits = require('bit-twiddle');
+const tokenize = require('glsl-tokenizer/string');
+const HEADLESS_VERSION = require('../../package.json').version;
+const { gl, NativeWebGLRenderingContext, NativeWebGL } = require('./native-gl');
+const { getANGLEInstancedArrays } = require('./extensions/angle-instanced-arrays');
+const { getOESElementIndexUint } = require('./extensions/oes-element-index-unit');
+const { getOESStandardDerivatives } = require('./extensions/oes-standard-derivatives');
+const { getOESTextureFloat } = require('./extensions/oes-texture-float');
+const { getOESTextureFloatLinear } = require('./extensions/oes-texture-float-linear');
+const { getSTACKGLDestroyContext } = require('./extensions/stackgl-destroy-context');
+const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-drawing-buffer');
+const { getWebGLDrawBuffers } = require('./extensions/webgl-draw-buffers');
+const { getEXTBlendMinMax } = require('./extensions/ext-blend-minmax');
+const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic');
+const { getOESVertexArrayObject } = require('./extensions/oes-vertex-array-object');
 const {
   bindPublics,
   checkObject,
@@ -44,21 +28,19 @@ const {
   convertPixels,
   checkFormat,
   validCubeTarget,
-} = require("./utils");
+} = require('./utils');
 
-const { WebGLActiveInfo } = require("./webgl-active-info");
-const { WebGLFramebuffer } = require("./webgl-framebuffer");
-const { WebGLBuffer } = require("./webgl-buffer");
-const { WebGLDrawingBufferWrapper } = require("./webgl-drawing-buffer-wrapper");
-const { WebGLProgram } = require("./webgl-program");
-const { WebGLRenderbuffer } = require("./webgl-renderbuffer");
-const { WebGLShader } = require("./webgl-shader");
-const {
-  WebGLShaderPrecisionFormat,
-} = require("./webgl-shader-precision-format");
-const { WebGLTexture } = require("./webgl-texture");
-const { WebGLUniformLocation } = require("./webgl-uniform-location");
-const { WebGLVertexArrayObject } = require("./webgl-vertex-array-object.js");
+const { WebGLActiveInfo } = require('./webgl-active-info');
+const { WebGLFramebuffer } = require('./webgl-framebuffer');
+const { WebGLBuffer } = require('./webgl-buffer');
+const { WebGLDrawingBufferWrapper } = require('./webgl-drawing-buffer-wrapper');
+const { WebGLProgram } = require('./webgl-program');
+const { WebGLRenderbuffer } = require('./webgl-renderbuffer');
+const { WebGLShader } = require('./webgl-shader');
+const { WebGLShaderPrecisionFormat } = require('./webgl-shader-precision-format');
+const { WebGLTexture } = require('./webgl-texture');
+const { WebGLUniformLocation } = require('./webgl-uniform-location');
+const { WebGLVertexArrayObject } = require('./webgl-vertex-array-object.js');
 
 // These are defined by the WebGL spec
 const MAX_UNIFORM_LENGTH = 256;
@@ -87,24 +69,14 @@ const availableExtensions = {
   ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic,
 };
 
-const privateMethods = ["resize", "destroy"];
+const privateMethods = ['resize', 'destroy'];
 
 function wrapContext(ctx) {
   const wrapper = new WebGLRenderingContext();
   bindPublics(Object.keys(ctx), wrapper, ctx, privateMethods);
-  bindPublics(
-    Object.keys(ctx.constructor.prototype),
-    wrapper,
-    ctx,
-    privateMethods
-  );
+  bindPublics(Object.keys(ctx.constructor.prototype), wrapper, ctx, privateMethods);
   bindPublics(Object.getOwnPropertyNames(ctx), wrapper, ctx, privateMethods);
-  bindPublics(
-    Object.getOwnPropertyNames(ctx.constructor.prototype),
-    wrapper,
-    ctx,
-    privateMethods
-  );
+  bindPublics(Object.getOwnPropertyNames(ctx.constructor.prototype), wrapper, ctx, privateMethods);
 
   Object.defineProperties(wrapper, {
     drawingBufferWidth: {
@@ -136,20 +108,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return false;
     }
     if (target === gl.TEXTURE_2D) {
-      if (
-        width > this._maxTextureSize ||
-        height > this._maxTextureSize ||
-        level > this._maxTextureLevel
-      ) {
+      if (width > this._maxTextureSize || height > this._maxTextureSize || level > this._maxTextureLevel) {
         this.setError(gl.INVALID_VALUE);
         return false;
       }
     } else if (this._validCubeTarget(target)) {
-      if (
-        width > this._maxCubeMapSize ||
-        height > this._maxCubeMapSize ||
-        level > this._maxCubeMapLevel
-      ) {
+      if (width > this._maxCubeMapSize || height > this._maxCubeMapSize || level > this._maxCubeMapLevel) {
         this.setError(gl.INVALID_VALUE);
         return false;
       }
@@ -164,10 +128,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     if (!(location instanceof WebGLUniformLocation)) {
       this.setError(gl.INVALID_VALUE);
       return false;
-    } else if (
-      location._program._ctx !== this ||
-      location._linkCount !== location._program._linkCount
-    ) {
+    } else if (location._program._ctx !== this || location._linkCount !== location._program._linkCount) {
       this.setError(gl.INVALID_OPERATION);
       return false;
     }
@@ -187,7 +148,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   _checkOwns(object) {
-    return typeof object === "object" && object._ctx === this;
+    return typeof object === 'object' && object._ctx === this;
   }
 
   _checkShaderSource(shader) {
@@ -200,56 +161,41 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     for (let i = 0; i < tokens.length; ++i) {
       const tok = tokens[i];
       switch (tok.type) {
-        case "ident":
+        case 'ident':
           if (!this._validGLSLIdentifier(tok.data)) {
             errorStatus = true;
-            errorLog.push(
-              tok.line + ":" + tok.column + " invalid identifier - " + tok.data
-            );
+            errorLog.push(tok.line + ':' + tok.column + ' invalid identifier - ' + tok.data);
           }
           break;
-        case "preprocessor": {
+        case 'preprocessor': {
           const bodyToks = tokenize(tok.data.match(/^\s*#\s*(.*)$/)[1]);
           for (let j = 0; j < bodyToks.length; ++j) {
             const btok = bodyToks[j];
-            if (btok.type === "ident" || btok.type === undefined) {
+            if (btok.type === 'ident' || btok.type === undefined) {
               if (!this._validGLSLIdentifier(btok.data)) {
                 errorStatus = true;
-                errorLog.push(
-                  tok.line +
-                    ":" +
-                    btok.column +
-                    " invalid identifier - " +
-                    btok.data
-                );
+                errorLog.push(tok.line + ':' + btok.column + ' invalid identifier - ' + btok.data);
               }
             }
           }
           break;
         }
-        case "keyword":
+        case 'keyword':
           switch (tok.data) {
-            case "do":
+            case 'do':
               errorStatus = true;
-              errorLog.push(tok.line + ":" + tok.column + " do not supported");
+              errorLog.push(tok.line + ':' + tok.column + ' do not supported');
               break;
           }
           break;
-        case "builtin":
+        case 'builtin':
           switch (tok.data) {
-            case "dFdx":
-            case "dFdy":
-            case "fwidth":
+            case 'dFdx':
+            case 'dFdy':
+            case 'fwidth':
               if (!this._extensions.oes_standard_derivatives) {
                 errorStatus = true;
-                errorLog.push(
-                  tok.line +
-                    ":" +
-                    tok.column +
-                    " " +
-                    tok.data +
-                    " not supported"
-                );
+                errorLog.push(tok.line + ':' + tok.column + ' ' + tok.data + ' not supported');
               }
               break;
           }
@@ -257,7 +203,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     if (errorStatus) {
-      shader._compileInfo = errorLog.join("\n");
+      shader._compileInfo = errorLog.join('\n');
     }
     return !errorStatus;
   }
@@ -269,12 +215,9 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     this._checkStencil = false;
     this._stencilState = true;
     if (
-      this.getParameter(gl.STENCIL_WRITEMASK) !==
-        this.getParameter(gl.STENCIL_BACK_WRITEMASK) ||
-      this.getParameter(gl.STENCIL_VALUE_MASK) !==
-        this.getParameter(gl.STENCIL_BACK_VALUE_MASK) ||
-      this.getParameter(gl.STENCIL_REF) !==
-        this.getParameter(gl.STENCIL_BACK_REF)
+      this.getParameter(gl.STENCIL_WRITEMASK) !== this.getParameter(gl.STENCIL_BACK_WRITEMASK) ||
+      this.getParameter(gl.STENCIL_VALUE_MASK) !== this.getParameter(gl.STENCIL_BACK_VALUE_MASK) ||
+      this.getParameter(gl.STENCIL_REF) !== this.getParameter(gl.STENCIL_BACK_REF)
     ) {
       this.setError(gl.INVALID_OPERATION);
       this._stencilState = false;
@@ -335,10 +278,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
           if (attrib._divisor) {
             maxByte = attrib._pointerSize + attrib._pointerOffset;
           } else {
-            maxByte =
-              attrib._pointerStride * maxIndex +
-              attrib._pointerSize +
-              attrib._pointerOffset;
+            maxByte = attrib._pointerStride * maxIndex + attrib._pointerSize + attrib._pointerOffset;
           }
           if (maxByte > buffer._size) {
             this.setError(gl.INVALID_OPERATION);
@@ -413,7 +353,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     // Check attribute names
     for (let i = 0; i < names.length; ++i) {
       if (names[i].length > MAX_ATTRIBUTE_LENGTH) {
-        program._linkInfoLog = "attribute " + names[i] + " is too long";
+        program._linkInfoLog = 'attribute ' + names[i] + ' is too long';
         return false;
       }
     }
@@ -433,22 +373,18 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     // Check attribute and uniform name lengths
     for (let i = 0; i < program._uniforms.length; ++i) {
       if (program._uniforms[i].name.length > MAX_UNIFORM_LENGTH) {
-        program._linkInfoLog =
-          "uniform " + program._uniforms[i].name + " is too long";
+        program._linkInfoLog = 'uniform ' + program._uniforms[i].name + ' is too long';
         return false;
       }
     }
 
-    program._linkInfoLog = "";
+    program._linkInfoLog = '';
     return true;
   }
 
   _framebufferOk() {
     const framebuffer = this._activeFramebuffer;
-    if (
-      framebuffer &&
-      this._preCheckFramebufferStatus(framebuffer) !== gl.FRAMEBUFFER_COMPLETE
-    ) {
+    if (framebuffer && this._preCheckFramebufferStatus(framebuffer) !== gl.FRAMEBUFFER_COMPLETE) {
       this.setError(gl.INVALID_FRAMEBUFFER_OPERATION);
       return false;
     }
@@ -513,20 +449,14 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     const depthStencilAttachment = attachments[gl.DEPTH_STENCIL_ATTACHMENT];
     const stencilAttachment = attachments[gl.STENCIL_ATTACHMENT];
 
-    if (
-      (depthStencilAttachment && (stencilAttachment || depthAttachment)) ||
-      (stencilAttachment && depthAttachment)
-    ) {
+    if ((depthStencilAttachment && (stencilAttachment || depthAttachment)) || (stencilAttachment && depthAttachment)) {
       return gl.FRAMEBUFFER_UNSUPPORTED;
     }
 
     const colorAttachments = this._getColorAttachments();
     let colorAttachmentCount = 0;
     for (const attachmentEnum in attachments) {
-      if (
-        attachments[attachmentEnum] &&
-        colorAttachments.indexOf(attachmentEnum * 1) !== -1
-      ) {
+      if (attachments[attachmentEnum] && colorAttachments.indexOf(attachmentEnum * 1) !== -1) {
         colorAttachmentCount++;
       }
     }
@@ -570,10 +500,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       if (colorAttachment instanceof WebGLTexture) {
         if (
           colorAttachment._format !== gl.RGBA ||
-          !(
-            colorAttachment._type === gl.UNSIGNED_BYTE ||
-            colorAttachment._type === gl.FLOAT
-          )
+          !(colorAttachment._type === gl.UNSIGNED_BYTE || colorAttachment._type === gl.FLOAT)
         ) {
           return gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
         }
@@ -583,11 +510,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         height.push(colorAttachment._levelHeight[level]);
       } else if (colorAttachment instanceof WebGLRenderbuffer) {
         const format = colorAttachment._format;
-        if (
-          format !== gl.RGBA4 &&
-          format !== gl.RGB565 &&
-          format !== gl.RGB5_A1
-        ) {
+        if (format !== gl.RGBA4 && format !== gl.RGB565 && format !== gl.RGB5_A1) {
           return gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
         }
         colorAttached = true;
@@ -596,12 +519,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       }
     }
 
-    if (
-      !colorAttached &&
-      !stencilAttachment &&
-      !depthAttachment &&
-      !depthStencilAttachment
-    ) {
+    if (!colorAttached && !stencilAttachment && !depthAttachment && !depthStencilAttachment) {
       return gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
     }
 
@@ -635,11 +553,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   _isObject(object, method, Wrapper) {
-    if (
-      !(object === null || object === undefined) &&
-      !(object instanceof Wrapper)
-    ) {
-      throw new TypeError(method + "(" + Wrapper.name + ")");
+    if (!(object === null || object === undefined) && !(object instanceof Wrapper)) {
+      throw new TypeError(method + '(' + Wrapper.name + ')');
     }
     if (this._checkValid(object, Wrapper) && this._checkOwns(object)) {
       return true;
@@ -659,38 +574,16 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     const attachments = this._getAttachments();
     // Clear all attachments
     for (let i = 0; i < attachments.length; ++i) {
-      super.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        attachments[i],
-        gl.TEXTURE_2D,
-        0,
-        0
-      );
+      super.framebufferTexture2D(gl.FRAMEBUFFER, attachments[i], gl.TEXTURE_2D, 0, 0);
     }
 
     // Update color attachment
     super.bindTexture(gl.TEXTURE_2D, drawingBuffer._color);
     const colorFormat = contextAttributes.alpha ? gl.RGBA : gl.RGB;
-    super.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      colorFormat,
-      width,
-      height,
-      0,
-      colorFormat,
-      gl.UNSIGNED_BYTE,
-      null
-    );
+    super.texImage2D(gl.TEXTURE_2D, 0, colorFormat, width, height, 0, colorFormat, gl.UNSIGNED_BYTE, null);
     super.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     super.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    super.framebufferTexture2D(
-      gl.FRAMEBUFFER,
-      gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D,
-      drawingBuffer._color,
-      0
-    );
+    super.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, drawingBuffer._color, 0);
 
     // Update depth-stencil attachments if needed
     let storage = 0;
@@ -709,12 +602,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     if (storage) {
       super.bindRenderbuffer(gl.RENDERBUFFER, drawingBuffer._depthStencil);
       super.renderbufferStorage(gl.RENDERBUFFER, storage, width, height);
-      super.framebufferRenderbuffer(
-        gl.FRAMEBUFFER,
-        attachment,
-        gl.RENDERBUFFER,
-        drawingBuffer._depthStencil
-      );
+      super.framebufferRenderbuffer(gl.FRAMEBUFFER, attachment, gl.RENDERBUFFER, drawingBuffer._depthStencil);
     }
 
     // Restore previous binding state
@@ -751,12 +639,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       const framebufferAttachments = Object.keys(framebuffer._attachments);
       for (let i = 0; i < framebufferAttachments.length; ++i) {
         if (framebuffer._attachments[attachments[i]] === renderbuffer) {
-          this.framebufferTexture2D(
-            gl.FRAMEBUFFER,
-            attachments[i] | 0,
-            gl.TEXTURE_2D,
-            null
-          );
+          this.framebufferTexture2D(gl.FRAMEBUFFER, attachments[i] | 0, gl.TEXTURE_2D, null);
         }
       }
     }
@@ -805,12 +688,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
           framebuffer._attachmentLevel[attachmentEnum]
         );
       } else if (attachment instanceof WebGLRenderbuffer) {
-        super.framebufferRenderbuffer(
-          gl.FRAMEBUFFER,
-          attachmentEnum,
-          gl.RENDERBUFFER,
-          attachment._ | 0
-        );
+        super.framebufferRenderbuffer(gl.FRAMEBUFFER, attachmentEnum, gl.RENDERBUFFER, attachment._ | 0);
       }
     }
   }
@@ -841,8 +719,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       mode === gl.FUNC_SUBTRACT ||
       mode === gl.FUNC_REVERSE_SUBTRACT ||
       (this._extensions.ext_blend_minmax &&
-        (mode === this._extensions.ext_blend_minmax.MIN_EXT ||
-          mode === this._extensions.ext_blend_minmax.MAX_EXT))
+        (mode === this._extensions.ext_blend_minmax.MIN_EXT || mode === this._extensions.ext_blend_minmax.MAX_EXT))
     );
   }
 
@@ -869,22 +746,14 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     if (this._extensions.webgl_draw_buffers) {
       // eslint-disable-line
       const { webgl_draw_buffers } = this._extensions; // eslint-disable-line
-      return (
-        attachment <
-        webgl_draw_buffers.COLOR_ATTACHMENT0_WEBGL +
-          webgl_draw_buffers._maxDrawBuffers
-      ); // eslint-disable-line
+      return attachment < webgl_draw_buffers.COLOR_ATTACHMENT0_WEBGL + webgl_draw_buffers._maxDrawBuffers; // eslint-disable-line
     }
 
     return false;
   }
 
   _validGLSLIdentifier(str) {
-    return !(
-      str.indexOf("webgl_") === 0 ||
-      str.indexOf("_webgl_") === 0 ||
-      str.length > 256
-    );
+    return !(str.indexOf('webgl_') === 0 || str.indexOf('_webgl_') === 0 || str.length > 256);
   }
 
   _validTextureTarget(target) {
@@ -928,11 +797,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     // the gl implementation seems to define `GL_OES_standard_derivatives` even when the extension is disabled
     // this behaviour causes one conformance test ('GL_OES_standard_derivatives defined in shaders when extension is disabled') to fail
     // by `undef`ing `GL_OES_standard_derivatives`, this appears to solve the issue
-    if (
-      !this._extensions.oes_standard_derivatives &&
-      /#ifdef\s+GL_OES_standard_derivatives/.test(source)
-    ) {
-      source = "#undef GL_OES_standard_derivatives\n" + source;
+    if (!this._extensions.oes_standard_derivatives && /#ifdef\s+GL_OES_standard_derivatives/.test(source)) {
+      source = '#undef GL_OES_standard_derivatives\n' + source;
     }
 
     return source;
@@ -940,11 +806,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   _beginAttrib0Hack() {
     super.bindBuffer(gl.ARRAY_BUFFER, this._attrib0Buffer._);
-    super.bufferData(
-      gl.ARRAY_BUFFER,
-      this._vertexGlobalState._attribs[0]._data,
-      gl.STREAM_DRAW
-    );
+    super.bufferData(gl.ARRAY_BUFFER, this._vertexGlobalState._attribs[0]._data, gl.STREAM_DRAW);
     super.enableVertexAttribArray(0);
     super.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
     super._vertexAttribDivisor(0, 1);
@@ -968,10 +830,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     super._vertexAttribDivisor(0, attrib._divisor);
     super.disableVertexAttribArray(0);
     if (this._vertexGlobalState._arrayBufferBinding) {
-      super.bindBuffer(
-        gl.ARRAY_BUFFER,
-        this._vertexGlobalState._arrayBufferBinding._
-      );
+      super.bindBuffer(gl.ARRAY_BUFFER, this._vertexGlobalState._arrayBufferBinding._);
     } else {
       super.bindBuffer(gl.ARRAY_BUFFER, 0);
     }
@@ -990,7 +849,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   attachShader(program, shader) {
     if (!checkObject(program) || !checkObject(shader)) {
-      throw new TypeError("attachShader(WebGLProgram, WebGLShader)");
+      throw new TypeError('attachShader(WebGLProgram, WebGLShader)');
     }
     if (!program || !shader) {
       this.setError(gl.INVALID_VALUE);
@@ -1016,10 +875,10 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   bindAttribLocation(program, index, name) {
-    if (!checkObject(program) || typeof name !== "string") {
-      throw new TypeError("bindAttribLocation(WebGLProgram, GLint, String)");
+    if (!checkObject(program) || typeof name !== 'string') {
+      throw new TypeError('bindAttribLocation(WebGLProgram, GLint, String)');
     }
-    name += "";
+    name += '';
     if (!isValidString(name) || name.length > MAX_ATTRIBUTE_LENGTH) {
       this.setError(gl.INVALID_VALUE);
     } else if (/^_?webgl_a/.test(name)) {
@@ -1031,7 +890,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   bindFramebuffer(target, framebuffer) {
     if (!checkObject(framebuffer)) {
-      throw new TypeError("bindFramebuffer(GLenum, WebGLFramebuffer)");
+      throw new TypeError('bindFramebuffer(GLenum, WebGLFramebuffer)');
     }
     if (target !== gl.FRAMEBUFFER) {
       this.setError(gl.INVALID_ENUM);
@@ -1065,7 +924,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   bindBuffer(target, buffer) {
     target |= 0;
     if (!checkObject(buffer)) {
-      throw new TypeError("bindBuffer(GLenum, WebGLBuffer)");
+      throw new TypeError('bindBuffer(GLenum, WebGLBuffer)');
     }
     if (target !== gl.ARRAY_BUFFER && target !== gl.ELEMENT_ARRAY_BUFFER) {
       this.setError(gl.INVALID_ENUM);
@@ -1100,7 +959,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   bindRenderbuffer(target, object) {
     if (!checkObject(object)) {
-      throw new TypeError("bindRenderbuffer(GLenum, WebGLRenderbuffer)");
+      throw new TypeError('bindRenderbuffer(GLenum, WebGLRenderbuffer)');
     }
 
     if (target !== gl.RENDERBUFFER) {
@@ -1134,7 +993,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     target |= 0;
 
     if (!checkObject(texture)) {
-      throw new TypeError("bindTexture(GLenum, WebGLTexture)");
+      throw new TypeError('bindTexture(GLenum, WebGLTexture)');
     }
 
     if (!this._validTextureTarget(target)) {
@@ -1264,9 +1123,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     if (str in this._extensions) {
       return this._extensions[str];
     }
-    const ext = availableExtensions[str]
-      ? availableExtensions[str](this)
-      : null;
+    const ext = availableExtensions[str] ? availableExtensions[str](this) : null;
     if (ext) {
       this._extensions[str] = ext;
     }
@@ -1274,44 +1131,40 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   getSupportedExtensions() {
-    const exts = [
-      "ANGLE_instanced_arrays",
-      "STACKGL_resize_drawingbuffer",
-      "STACKGL_destroy_context",
-    ];
+    const exts = ['ANGLE_instanced_arrays', 'STACKGL_resize_drawingbuffer', 'STACKGL_destroy_context'];
 
     const supportedExts = super.getSupportedExtensions();
 
-    if (supportedExts.indexOf("GL_OES_element_index_uint") >= 0) {
-      exts.push("OES_element_index_uint");
+    if (supportedExts.indexOf('GL_OES_element_index_uint') >= 0) {
+      exts.push('OES_element_index_uint');
     }
 
-    if (supportedExts.indexOf("GL_OES_standard_derivatives") >= 0) {
-      exts.push("OES_standard_derivatives");
+    if (supportedExts.indexOf('GL_OES_standard_derivatives') >= 0) {
+      exts.push('OES_standard_derivatives');
     }
 
-    if (supportedExts.indexOf("GL_OES_texture_float") >= 0) {
-      exts.push("OES_texture_float");
+    if (supportedExts.indexOf('GL_OES_texture_float') >= 0) {
+      exts.push('OES_texture_float');
     }
 
-    if (supportedExts.indexOf("GL_OES_texture_float_linear") >= 0) {
-      exts.push("OES_texture_float_linear");
+    if (supportedExts.indexOf('GL_OES_texture_float_linear') >= 0) {
+      exts.push('OES_texture_float_linear');
     }
 
-    if (supportedExts.indexOf("EXT_draw_buffers") >= 0) {
-      exts.push("WEBGL_draw_buffers");
+    if (supportedExts.indexOf('EXT_draw_buffers') >= 0) {
+      exts.push('WEBGL_draw_buffers');
     }
 
-    if (supportedExts.indexOf("EXT_blend_minmax") >= 0) {
-      exts.push("EXT_blend_minmax");
+    if (supportedExts.indexOf('EXT_blend_minmax') >= 0) {
+      exts.push('EXT_blend_minmax');
     }
 
-    if (supportedExts.indexOf("EXT_texture_filter_anisotropic") >= 0) {
-      exts.push("EXT_texture_filter_anisotropic");
+    if (supportedExts.indexOf('EXT_texture_filter_anisotropic') >= 0) {
+      exts.push('EXT_texture_filter_anisotropic');
     }
 
-    if (supportedExts.indexOf("GL_OES_vertex_array_object") >= 0) {
-      exts.push("OES_vertex_array_object");
+    if (supportedExts.indexOf('GL_OES_vertex_array_object') >= 0) {
+      exts.push('OES_vertex_array_object');
     }
 
     return exts;
@@ -1328,10 +1181,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       this.setError(gl.INVALID_ENUM);
       return;
     }
-    if (
-      this._isConstantBlendFunc(sfactor) &&
-      this._isConstantBlendFunc(dfactor)
-    ) {
+    if (this._isConstantBlendFunc(sfactor) && this._isConstantBlendFunc(dfactor)) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -1357,10 +1207,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     if (
-      (this._isConstantBlendFunc(srcRGB) &&
-        this._isConstantBlendFunc(dstRGB)) ||
-      (this._isConstantBlendFunc(srcAlpha) &&
-        this._isConstantBlendFunc(dstAlpha))
+      (this._isConstantBlendFunc(srcRGB) && this._isConstantBlendFunc(dstRGB)) ||
+      (this._isConstantBlendFunc(srcAlpha) && this._isConstantBlendFunc(dstAlpha))
     ) {
       this.setError(gl.INVALID_OPERATION);
       return;
@@ -1372,11 +1220,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   bufferData(target, data, usage) {
     target |= 0;
     usage |= 0;
-    if (
-      usage !== gl.STREAM_DRAW &&
-      usage !== gl.STATIC_DRAW &&
-      usage !== gl.DYNAMIC_DRAW
-    ) {
+    if (usage !== gl.STREAM_DRAW && usage !== gl.STATIC_DRAW && usage !== gl.DYNAMIC_DRAW) {
       this.setError(gl.INVALID_ENUM);
       return;
     }
@@ -1392,7 +1236,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return;
     }
 
-    if (typeof data === "object") {
+    if (typeof data === 'object') {
       let u8Data = null;
       if (isTypedArray(data) || data instanceof DataView) {
         u8Data = unpackTypedArray(data);
@@ -1415,7 +1259,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       if (target === gl.ELEMENT_ARRAY_BUFFER) {
         active._elements = new Uint8Array(u8Data);
       }
-    } else if (typeof data === "number") {
+    } else if (typeof data === 'number') {
       const size = data | 0;
       if (size < 0) {
         this.setError(gl.INVALID_VALUE);
@@ -1452,7 +1296,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return;
     }
 
-    if (!data || typeof data !== "object") {
+    if (!data || typeof data !== 'object') {
       this.setError(gl.INVALID_VALUE);
       return;
     }
@@ -1530,19 +1374,13 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   compileShader(shader) {
     if (!checkObject(shader)) {
-      throw new TypeError("compileShader(WebGLShader)");
+      throw new TypeError('compileShader(WebGLShader)');
     }
-    if (
-      this._checkWrapper(shader, WebGLShader) &&
-      this._checkShaderSource(shader)
-    ) {
+    if (this._checkWrapper(shader, WebGLShader) && this._checkShaderSource(shader)) {
       const prevError = this.getError();
       super.compileShader(shader._ | 0);
       const error = this.getError();
-      shader._compileStatus = !!super.getShaderParameter(
-        shader._ | 0,
-        gl.COMPILE_STATUS
-      );
+      shader._compileStatus = !!super.getShaderParameter(shader._ | 0, gl.COMPILE_STATUS);
       shader._compileInfo = super.getShaderInfoLog(shader._ | 0);
       this.getError();
       this.setError(prevError || error);
@@ -1587,16 +1425,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     this._saveError();
-    super.copyTexImage2D(
-      target,
-      level,
-      internalFormat,
-      x,
-      y,
-      width,
-      height,
-      border
-    );
+    super.copyTexImage2D(target, level, internalFormat, x, y, width, height, border);
     const error = this.getError();
     this._restoreError(error);
 
@@ -1629,16 +1458,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return;
     }
 
-    super.copyTexSubImage2D(
-      target,
-      level,
-      xoffset,
-      yoffset,
-      x,
-      y,
-      width,
-      height
-    );
+    super.copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
   }
 
   cullFace(mode) {
@@ -1661,16 +1481,16 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   deleteProgram(object) {
-    return this._deleteLinkable("deleteProgram", object, WebGLProgram);
+    return this._deleteLinkable('deleteProgram', object, WebGLProgram);
   }
 
   deleteShader(object) {
-    return this._deleteLinkable("deleteShader", object, WebGLShader);
+    return this._deleteLinkable('deleteShader', object, WebGLShader);
   }
 
   _deleteLinkable(name, object, Type) {
     if (!checkObject(object)) {
-      throw new TypeError(name + "(" + Type.name + ")");
+      throw new TypeError(name + '(' + Type.name + ')');
     }
     if (object instanceof Type && this._checkOwns(object)) {
       object._pendingDelete = true;
@@ -1681,11 +1501,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   deleteBuffer(buffer) {
-    if (
-      !checkObject(buffer) ||
-      (buffer !== null && !(buffer instanceof WebGLBuffer))
-    ) {
-      throw new TypeError("deleteBuffer(WebGLBuffer)");
+    if (!checkObject(buffer) || (buffer !== null && !(buffer instanceof WebGLBuffer))) {
+      throw new TypeError('deleteBuffer(WebGLBuffer)');
     }
 
     if (!(buffer instanceof WebGLBuffer && this._checkOwns(buffer))) {
@@ -1712,12 +1529,10 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   deleteFramebuffer(framebuffer) {
     if (!checkObject(framebuffer)) {
-      throw new TypeError("deleteFramebuffer(WebGLFramebuffer)");
+      throw new TypeError('deleteFramebuffer(WebGLFramebuffer)');
     }
 
-    if (
-      !(framebuffer instanceof WebGLFramebuffer && this._checkOwns(framebuffer))
-    ) {
+    if (!(framebuffer instanceof WebGLFramebuffer && this._checkOwns(framebuffer))) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -1743,15 +1558,10 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   //
   deleteRenderbuffer(renderbuffer) {
     if (!checkObject(renderbuffer)) {
-      throw new TypeError("deleteRenderbuffer(WebGLRenderbuffer)");
+      throw new TypeError('deleteRenderbuffer(WebGLRenderbuffer)');
     }
 
-    if (
-      !(
-        renderbuffer instanceof WebGLRenderbuffer &&
-        this._checkOwns(renderbuffer)
-      )
-    ) {
+    if (!(renderbuffer instanceof WebGLRenderbuffer && this._checkOwns(renderbuffer))) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -1770,7 +1580,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   deleteTexture(texture) {
     if (!checkObject(texture)) {
-      throw new TypeError("deleteTexture(WebGLTexture)");
+      throw new TypeError('deleteTexture(WebGLTexture)');
     }
 
     if (texture instanceof WebGLTexture) {
@@ -1807,12 +1617,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         for (let i = 0; i < attachments.length; ++i) {
           const attachment = attachments[i];
           if (framebuffer._attachments[attachment] === texture) {
-            ctx.framebufferTexture2D(
-              gl.FRAMEBUFFER,
-              attachment,
-              gl.TEXTURE_2D,
-              null
-            );
+            ctx.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, null);
           }
         }
       }
@@ -1861,12 +1666,9 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   detachShader(program, shader) {
     if (!checkObject(program) || !checkObject(shader)) {
-      throw new TypeError("detachShader(WebGLProgram, WebGLShader)");
+      throw new TypeError('detachShader(WebGLProgram, WebGLShader)');
     }
-    if (
-      this._checkWrapper(program, WebGLProgram) &&
-      this._checkWrapper(shader, WebGLShader)
-    ) {
+    if (this._checkWrapper(program, WebGLProgram) && this._checkWrapper(shader, WebGLShader)) {
       if (program._linked(shader)) {
         super.detachShader(program._, shader._);
         program._unlink(shader);
@@ -1976,10 +1778,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       }
       offset >>= 1;
       elementData = new Uint16Array(elementBuffer._elements.buffer);
-    } else if (
-      this._extensions.oes_element_index_uint &&
-      type === gl.UNSIGNED_INT
-    ) {
+    } else if (this._extensions.oes_element_index_uint && type === gl.UNSIGNED_INT) {
       if (offset % 4) {
         this.setError(gl.INVALID_OPERATION);
         return;
@@ -2094,20 +1893,13 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     return super.flush();
   }
 
-  framebufferRenderbuffer(
-    target,
-    attachment,
-    renderbufferTarget,
-    renderbuffer
-  ) {
+  framebufferRenderbuffer(target, attachment, renderbufferTarget, renderbuffer) {
     target = target | 0;
     attachment = attachment | 0;
     renderbufferTarget = renderbufferTarget | 0;
 
     if (!checkObject(renderbuffer)) {
-      throw new TypeError(
-        "framebufferRenderbuffer(GLenum, GLenum, GLenum, WebGLRenderbuffer)"
-      );
+      throw new TypeError('framebufferRenderbuffer(GLenum, GLenum, GLenum, WebGLRenderbuffer)');
     }
 
     if (
@@ -2139,16 +1931,11 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     textarget |= 0;
     level |= 0;
     if (!checkObject(texture)) {
-      throw new TypeError(
-        "framebufferTexture2D(GLenum, GLenum, GLenum, WebGLTexture, GLint)"
-      );
+      throw new TypeError('framebufferTexture2D(GLenum, GLenum, GLenum, WebGLTexture, GLint)');
     }
 
     // Check parameters are ok
-    if (
-      target !== gl.FRAMEBUFFER ||
-      !this._validFramebufferAttachment(attachment)
-    ) {
+    if (target !== gl.FRAMEBUFFER || !this._validFramebufferAttachment(attachment)) {
       this.setError(gl.INVALID_ENUM);
       return;
     }
@@ -2202,7 +1989,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getActiveAttrib(program, index) {
     if (!checkObject(program)) {
-      throw new TypeError("getActiveAttrib(WebGLProgram)");
+      throw new TypeError('getActiveAttrib(WebGLProgram)');
     } else if (!program) {
       this.setError(gl.INVALID_VALUE);
     } else if (this._checkWrapper(program, WebGLProgram)) {
@@ -2216,7 +2003,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getActiveUniform(program, index) {
     if (!checkObject(program)) {
-      throw new TypeError("getActiveUniform(WebGLProgram, GLint)");
+      throw new TypeError('getActiveUniform(WebGLProgram, GLint)');
     } else if (!program) {
       this.setError(gl.INVALID_VALUE);
     } else if (this._checkWrapper(program, WebGLProgram)) {
@@ -2231,11 +2018,9 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   getAttachedShaders(program) {
     if (
       !checkObject(program) ||
-      (typeof program === "object" &&
-        program !== null &&
-        !(program instanceof WebGLProgram))
+      (typeof program === 'object' && program !== null && !(program instanceof WebGLProgram))
     ) {
-      throw new TypeError("getAttachedShaders(WebGLProgram)");
+      throw new TypeError('getAttachedShaders(WebGLProgram)');
     }
     if (!program) {
       this.setError(gl.INVALID_VALUE);
@@ -2255,13 +2040,13 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getAttribLocation(program, name) {
     if (!checkObject(program)) {
-      throw new TypeError("getAttribLocation(WebGLProgram, String)");
+      throw new TypeError('getAttribLocation(WebGLProgram, String)');
     }
-    name += "";
+    name += '';
     if (!isValidString(name) || name.length > MAX_ATTRIBUTE_LENGTH) {
       this.setError(gl.INVALID_VALUE);
     } else if (this._checkWrapper(program, WebGLProgram)) {
-      return super.getAttribLocation(program._ | 0, name + "");
+      return super.getAttribLocation(program._ | 0, name + '');
     }
     return -1;
   }
@@ -2284,13 +2069,13 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       case gl.TEXTURE_BINDING_CUBE_MAP:
         return this._getActiveTextureUnit()._bindCube;
       case gl.VERSION:
-        return "WebGL 1.0 stack-gl " + HEADLESS_VERSION;
+        return 'WebGL 1.0 stack-gl ' + HEADLESS_VERSION;
       case gl.VENDOR:
-        return "stack-gl";
+        return 'stack-gl';
       case gl.RENDERER:
-        return "ANGLE";
+        return 'ANGLE';
       case gl.SHADING_LANGUAGE_VERSION:
-        return "WebGL GLSL ES 1.0 stack-gl";
+        return 'WebGL GLSL ES 1.0 stack-gl';
 
       case gl.COMPRESSED_TEXTURE_FORMATS:
         return new Uint32Array(0);
@@ -2411,10 +2196,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
             case ext.DRAW_BUFFER13_WEBGL:
             case ext.DRAW_BUFFER14_WEBGL:
             case ext.DRAW_BUFFER15_WEBGL:
-              if (
-                ext._buffersState.length === 1 &&
-                ext._buffersState[0] === gl.BACK
-              ) {
+              if (ext._buffersState.length === 1 && ext._buffersState[0] === gl.BACK) {
                 return gl.BACK;
               }
               return super.getParameter(pname);
@@ -2426,29 +2208,23 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
         if (
           this._extensions.oes_standard_derivatives &&
-          pname ===
-            this._extensions.oes_standard_derivatives
-              .FRAGMENT_SHADER_DERIVATIVE_HINT_OES
+          pname === this._extensions.oes_standard_derivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES
         ) {
           return super.getParameter(pname);
         }
 
         if (
           this._extensions.ext_texture_filter_anisotropic &&
-          pname ===
-            this._extensions.ext_texture_filter_anisotropic
-              .MAX_TEXTURE_MAX_ANISOTROPY_EXT
+          pname === this._extensions.ext_texture_filter_anisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT
         ) {
           return super.getParameter(pname);
         }
 
         if (
           this._extensions.oes_vertex_array_object &&
-          pname ===
-            this._extensions.oes_vertex_array_object.VERTEX_ARRAY_BINDING_OES
+          pname === this._extensions.oes_vertex_array_object.VERTEX_ARRAY_BINDING_OES
         ) {
-          return this._extensions.oes_vertex_array_object
-            ._activeVertexArrayObject;
+          return this._extensions.oes_vertex_array_object._activeVertexArrayObject;
         }
 
         this.setError(gl.INVALID_ENUM);
@@ -2510,10 +2286,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     attachment |= 0;
     pname |= 0;
 
-    if (
-      target !== gl.FRAMEBUFFER ||
-      !this._validFramebufferAttachment(attachment)
-    ) {
+    if (target !== gl.FRAMEBUFFER || !this._validFramebufferAttachment(attachment)) {
       this.setError(gl.INVALID_ENUM);
       return null;
     }
@@ -2561,7 +2334,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   getProgramParameter(program, pname) {
     pname |= 0;
     if (!checkObject(program)) {
-      throw new TypeError("getProgramParameter(WebGLProgram, GLenum)");
+      throw new TypeError('getProgramParameter(WebGLProgram, GLenum)');
     } else if (this._checkWrapper(program, WebGLProgram)) {
       switch (pname) {
         case gl.DELETE_STATUS:
@@ -2585,7 +2358,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getProgramInfoLog(program) {
     if (!checkObject(program)) {
-      throw new TypeError("getProgramInfoLog(WebGLProgram)");
+      throw new TypeError('getProgramInfoLog(WebGLProgram)');
     } else if (this._checkWrapper(program, WebGLProgram)) {
       return program._linkInfoLog;
     }
@@ -2627,7 +2400,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   getShaderParameter(shader, pname) {
     pname |= 0;
     if (!checkObject(shader)) {
-      throw new TypeError("getShaderParameter(WebGLShader, GLenum)");
+      throw new TypeError('getShaderParameter(WebGLShader, GLenum)');
     } else if (this._checkWrapper(shader, WebGLShader)) {
       switch (pname) {
         case gl.DELETE_STATUS:
@@ -2644,7 +2417,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getShaderInfoLog(shader) {
     if (!checkObject(shader)) {
-      throw new TypeError("getShaderInfoLog(WebGLShader)");
+      throw new TypeError('getShaderInfoLog(WebGLShader)');
     } else if (this._checkWrapper(shader, WebGLShader)) {
       return shader._compileInfo;
     }
@@ -2653,7 +2426,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getShaderSource(shader) {
     if (!checkObject(shader)) {
-      throw new TypeError("Input to getShaderSource must be an object");
+      throw new TypeError('Input to getShaderSource must be an object');
     } else if (this._checkWrapper(shader, WebGLShader)) {
       return shader._source;
     }
@@ -2669,10 +2442,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     const unit = this._getActiveTextureUnit();
-    if (
-      (target === gl.TEXTURE_2D && !unit._bind2D) ||
-      (target === gl.TEXTURE_CUBE_MAP && !unit._bindCube)
-    ) {
+    if ((target === gl.TEXTURE_2D && !unit._bind2D) || (target === gl.TEXTURE_CUBE_MAP && !unit._bindCube)) {
       this.setError(gl.INVALID_OPERATION);
       return null;
     }
@@ -2687,9 +2457,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (
       this._extensions.ext_texture_filter_anisotropic &&
-      pname ===
-        this._extensions.ext_texture_filter_anisotropic
-          .TEXTURE_MAX_ANISOTROPY_EXT
+      pname === this._extensions.ext_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT
     ) {
       return super.getTexParameter(target, pname);
     }
@@ -2700,7 +2468,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getUniform(program, location) {
     if (!checkObject(program) || !checkObject(location)) {
-      throw new TypeError("getUniform(WebGLProgram, WebGLUniformLocation)");
+      throw new TypeError('getUniform(WebGLProgram, WebGLUniformLocation)');
     } else if (!program) {
       this.setError(gl.INVALID_VALUE);
       return null;
@@ -2758,10 +2526,10 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   getUniformLocation(program, name) {
     if (!checkObject(program)) {
-      throw new TypeError("getUniformLocation(WebGLProgram, String)");
+      throw new TypeError('getUniformLocation(WebGLProgram, String)');
     }
 
-    name += "";
+    name += '';
     if (!isValidString(name)) {
       this.setError(gl.INVALID_VALUE);
       return;
@@ -2772,7 +2540,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       if (loc >= 0) {
         let searchName = name;
         if (/\[\d+\]$/.test(name)) {
-          searchName = name.replace(/\[\d+\]$/, "[0]");
+          searchName = name.replace(/\[\d+\]$/, '[0]');
         }
 
         let info = null;
@@ -2794,7 +2562,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
         // handle array case
         if (/\[0\]$/.test(name)) {
-          const baseName = name.replace(/\[0\]$/, "");
+          const baseName = name.replace(/\[0\]$/, '');
           const arrayLocs = [];
 
           // if (offset < 0 || offset >= info.size) {
@@ -2803,10 +2571,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
           this._saveError();
           for (let i = 0; this.getError() === gl.NO_ERROR; ++i) {
-            const xloc = super.getUniformLocation(
-              program._ | 0,
-              baseName + "[" + i + "]"
-            );
+            const xloc = super.getUniformLocation(program._ | 0, baseName + '[' + i + ']');
             if (this.getError() !== gl.NO_ERROR || xloc < 0) {
               break;
             }
@@ -2888,9 +2653,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       !(
         target === gl.GENERATE_MIPMAP_HINT ||
         (this._extensions.oes_standard_derivatives &&
-          target ===
-            this._extensions.oes_standard_derivatives
-              .FRAGMENT_SHADER_DERIVATIVE_HINT_OES)
+          target === this._extensions.oes_standard_derivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES)
       )
     ) {
       this.setError(gl.INVALID_ENUM);
@@ -2906,34 +2669,32 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   isBuffer(object) {
-    if (!this._isObject(object, "isBuffer", WebGLBuffer)) return false;
+    if (!this._isObject(object, 'isBuffer', WebGLBuffer)) return false;
     return super.isBuffer(object._ | 0);
   }
 
   isFramebuffer(object) {
-    if (!this._isObject(object, "isFramebuffer", WebGLFramebuffer))
-      return false;
+    if (!this._isObject(object, 'isFramebuffer', WebGLFramebuffer)) return false;
     return super.isFramebuffer(object._ | 0);
   }
 
   isProgram(object) {
-    if (!this._isObject(object, "isProgram", WebGLProgram)) return false;
+    if (!this._isObject(object, 'isProgram', WebGLProgram)) return false;
     return super.isProgram(object._ | 0);
   }
 
   isRenderbuffer(object) {
-    if (!this._isObject(object, "isRenderbuffer", WebGLRenderbuffer))
-      return false;
+    if (!this._isObject(object, 'isRenderbuffer', WebGLRenderbuffer)) return false;
     return super.isRenderbuffer(object._ | 0);
   }
 
   isShader(object) {
-    if (!this._isObject(object, "isShader", WebGLShader)) return false;
+    if (!this._isObject(object, 'isShader', WebGLShader)) return false;
     return super.isShader(object._ | 0);
   }
 
   isTexture(object) {
-    if (!this._isObject(object, "isTexture", WebGLTexture)) return false;
+    if (!this._isObject(object, 'isTexture', WebGLTexture)) return false;
     return super.isTexture(object._ | 0);
   }
 
@@ -2951,7 +2712,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   linkProgram(program) {
     if (!checkObject(program)) {
-      throw new TypeError("linkProgram(WebGLProgram)");
+      throw new TypeError('linkProgram(WebGLProgram)');
     }
     if (this._checkWrapper(program, WebGLProgram)) {
       program._linkCount += 1;
@@ -3003,18 +2764,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     width |= 0;
     height |= 0;
 
-    if (
-      !(
-        this._extensions.oes_texture_float &&
-        type === gl.FLOAT &&
-        format === gl.RGBA
-      )
-    ) {
-      if (
-        format === gl.RGB ||
-        format === gl.ALPHA ||
-        type !== gl.UNSIGNED_BYTE
-      ) {
+    if (!(this._extensions.oes_texture_float && type === gl.FLOAT && format === gl.RGBA)) {
+      if (format === gl.RGB || format === gl.ALPHA || type !== gl.UNSIGNED_BYTE) {
         this.setError(gl.INVALID_OPERATION);
         return;
       } else if (format !== gl.RGBA) {
@@ -3055,21 +2806,11 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     const pixelData = unpackTypedArray(pixels);
 
-    if (
-      x >= viewWidth ||
-      x + width <= 0 ||
-      y >= viewHeight ||
-      y + height <= 0
-    ) {
+    if (x >= viewWidth || x + width <= 0 || y >= viewHeight || y + height <= 0) {
       for (let i = 0; i < pixelData.length; ++i) {
         pixelData[i] = 0;
       }
-    } else if (
-      x < 0 ||
-      x + width > viewWidth ||
-      y < 0 ||
-      y + height > viewHeight
-    ) {
+    } else if (x < 0 || x + width > viewWidth || y < 0 || y + height > viewHeight) {
       for (let i = 0; i < pixelData.length; ++i) {
         pixelData[i] = 0;
       }
@@ -3106,8 +2847,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         for (let j = 0; j < nHeight; ++j) {
           for (let i = 0; i < nWidth; ++i) {
             for (let k = 0; k < 4; ++k) {
-              pixelData[offset + j * rowStride + 4 * i + k] =
-                subPixels[j * nRowStride + 4 * i + k];
+              pixelData[offset + j * rowStride + 4 * i + k] = subPixels[j * nRowStride + 4 * i + k];
             }
           }
         }
@@ -3179,11 +2919,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     width = width | 0;
     height = height | 0;
     if (!(width > 0 && height > 0)) {
-      throw new Error("Invalid surface dimensions");
-    } else if (
-      width !== this.drawingBufferWidth ||
-      height !== this.drawingBufferHeight
-    ) {
+      throw new Error('Invalid surface dimensions');
+    } else if (width !== this.drawingBufferWidth || height !== this.drawingBufferHeight) {
       this._resizeDrawingBuffer(width, height);
       this.drawingBufferWidth = width;
       this.drawingBufferHeight = height;
@@ -3200,13 +2937,13 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   shaderSource(shader, source) {
     if (!checkObject(shader)) {
-      throw new TypeError("shaderSource(WebGLShader, String)");
+      throw new TypeError('shaderSource(WebGLShader, String)');
     }
-    if (!shader || (!source && typeof source !== "string")) {
+    if (!shader || (!source && typeof source !== 'string')) {
       this.setError(gl.INVALID_VALUE);
       return;
     }
-    source += "";
+    source += '';
     if (!isValidString(source)) {
       this.setError(gl.INVALID_VALUE);
     } else if (this._checkWrapper(shader, WebGLShader)) {
@@ -3245,17 +2982,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     return super.stencilOpSeparate(face | 0, fail | 0, zfail | 0, zpass | 0);
   }
 
-  texImage2D(
-    target,
-    level,
-    internalFormat,
-    width,
-    height,
-    border,
-    format,
-    type,
-    pixels
-  ) {
+  texImage2D(target, level, internalFormat, width, height, border, format, type, pixels) {
     if (arguments.length === 6) {
       pixels = border;
       type = height;
@@ -3265,7 +2992,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
       if (pixels == null) {
         throw new TypeError(
-          "texImage2D(GLenum, GLint, GLenum, GLint, GLenum, GLenum, ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement)"
+          'texImage2D(GLenum, GLint, GLenum, GLint, GLenum, GLenum, ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement)'
         );
       }
 
@@ -3283,10 +3010,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     format |= 0;
     type |= 0;
 
-    if (typeof pixels !== "object" && pixels !== undefined) {
-      throw new TypeError(
-        "texImage2D(GLenum, GLint, GLenum, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)"
-      );
+    if (typeof pixels !== 'object' && pixels !== undefined) {
+      throw new TypeError('texImage2D(GLenum, GLint, GLenum, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)');
     }
 
     if (!checkFormat(format) || !checkFormat(internalFormat)) {
@@ -3329,17 +3054,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
     // Need to check for out of memory error
     this._saveError();
-    super.texImage2D(
-      target,
-      level,
-      internalFormat,
-      width,
-      height,
-      border,
-      format,
-      type,
-      data
-    );
+    super.texImage2D(target, level, internalFormat, width, height, border, format, type, data);
     const error = this.getError();
     this._restoreError(error);
     if (error !== gl.NO_ERROR) {
@@ -3368,17 +3083,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
   }
 
-  texSubImage2D(
-    target,
-    level,
-    xoffset,
-    yoffset,
-    width,
-    height,
-    format,
-    type,
-    pixels
-  ) {
+  texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels) {
     if (arguments.length === 7) {
       pixels = format;
       type = height;
@@ -3388,7 +3093,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
       if (pixels == null) {
         throw new TypeError(
-          "texSubImage2D(GLenum, GLint, GLint, GLint, GLenum, GLenum, ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement)"
+          'texSubImage2D(GLenum, GLint, GLint, GLint, GLenum, GLenum, ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement)'
         );
       }
 
@@ -3397,10 +3102,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       pixels = pixels.data;
     }
 
-    if (typeof pixels !== "object") {
-      throw new TypeError(
-        "texSubImage2D(GLenum, GLint, GLint, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)"
-      );
+    if (typeof pixels !== 'object') {
+      throw new TypeError('texSubImage2D(GLenum, GLint, GLint, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)');
     }
 
     target |= 0;
@@ -3446,17 +3149,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return;
     }
 
-    super.texSubImage2D(
-      target,
-      level,
-      xoffset,
-      yoffset,
-      width,
-      height,
-      format,
-      type,
-      data
-    );
+    super.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, data);
   }
 
   texParameterf(target, pname, param) {
@@ -3476,9 +3169,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
       if (
         this._extensions.ext_texture_filter_anisotropic &&
-        pname ===
-          this._extensions.ext_texture_filter_anisotropic
-            .TEXTURE_MAX_ANISOTROPY_EXT
+        pname === this._extensions.ext_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT
       ) {
         return super.texParameterf(target, pname, param);
       }
@@ -3504,9 +3195,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
       if (
         this._extensions.ext_texture_filter_anisotropic &&
-        pname ===
-          this._extensions.ext_texture_filter_anisotropic
-            .TEXTURE_MAX_ANISOTROPY_EXT
+        pname === this._extensions.ext_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT
       ) {
         return super.texParameteri(target, pname, param);
       }
@@ -3517,7 +3206,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   useProgram(program) {
     if (!checkObject(program)) {
-      throw new TypeError("useProgram(WebGLProgram)");
+      throw new TypeError('useProgram(WebGLProgram)');
     } else if (!program) {
       this._switchActiveProgram(this._activeProgram);
       this._activeProgram = null;
@@ -3646,7 +3335,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
           this.setError(gl.INVALID_VALUE);
           return;
         }
-        if (type !== "i") {
+        if (type !== 'i') {
           this.setError(gl.INVALID_OPERATION);
           return;
         }
@@ -3671,11 +3360,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return false;
     } else if (!this._checkLocationActive(location)) {
       return false;
-    } else if (
-      typeof value !== "object" ||
-      !value ||
-      typeof value.length !== "number"
-    ) {
+    } else if (typeof value !== 'object' || !value || typeof value.length !== 'number') {
       throw new TypeError(`Second argument to ${name} must be array`);
     } else if (uniformTypeSize(location._activeInfo.type) > count) {
       this.setError(gl.INVALID_OPERATION);
@@ -3695,13 +3380,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform1f(location, v0) {
-    if (!this._checkUniformValid(location, v0, "uniform1f", 1, "f")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform1f', 1, 'f')) return;
     super.uniform1f(location._ | 0, v0);
   }
 
   uniform1fv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform1fv", 1, "f"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform1fv', 1, 'f')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && i < value.length; ++i) {
@@ -3714,13 +3398,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform1i(location, v0) {
-    if (!this._checkUniformValid(location, v0, "uniform1i", 1, "i")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform1i', 1, 'i')) return;
     super.uniform1i(location._ | 0, v0);
   }
 
   uniform1iv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform1iv", 1, "i"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform1iv', 1, 'i')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && i < value.length; ++i) {
@@ -3733,13 +3416,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform2f(location, v0, v1) {
-    if (!this._checkUniformValid(location, v0, "uniform2f", 2, "f")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform2f', 2, 'f')) return;
     super.uniform2f(location._ | 0, v0, v1);
   }
 
   uniform2fv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform2fv", 2, "f"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform2fv', 2, 'f')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && 2 * i < value.length; ++i) {
@@ -3752,13 +3434,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform2i(location, v0, v1) {
-    if (!this._checkUniformValid(location, v0, "uniform2i", 2, "i")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform2i', 2, 'i')) return;
     super.uniform2i(location._ | 0, v0, v1);
   }
 
   uniform2iv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform2iv", 2, "i"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform2iv', 2, 'i')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && 2 * i < value.length; ++i) {
@@ -3771,13 +3452,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform3f(location, v0, v1, v2) {
-    if (!this._checkUniformValid(location, v0, "uniform3f", 3, "f")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform3f', 3, 'f')) return;
     super.uniform3f(location._ | 0, v0, v1, v2);
   }
 
   uniform3fv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform3fv", 3, "f"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform3fv', 3, 'f')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && 3 * i < value.length; ++i) {
@@ -3790,13 +3470,12 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform3i(location, v0, v1, v2) {
-    if (!this._checkUniformValid(location, v0, "uniform3i", 3, "i")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform3i', 3, 'i')) return;
     super.uniform3i(location._ | 0, v0, v1, v2);
   }
 
   uniform3iv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform3iv", 3, "i"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform3iv', 3, 'i')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && 3 * i < value.length; ++i) {
@@ -3809,24 +3488,17 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform4f(location, v0, v1, v2, v3) {
-    if (!this._checkUniformValid(location, v0, "uniform4f", 4, "f")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform4f', 4, 'f')) return;
     super.uniform4f(location._ | 0, v0, v1, v2, v3);
   }
 
   uniform4fv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform4fv", 4, "f"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform4fv', 4, 'f')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && 4 * i < value.length; ++i) {
         const loc = locs[i];
-        super.uniform4f(
-          loc,
-          value[4 * i],
-          value[4 * i + 1],
-          value[4 * i + 2],
-          value[4 * i + 3]
-        );
+        super.uniform4f(loc, value[4 * i], value[4 * i + 1], value[4 * i + 2], value[4 * i + 3]);
       }
       return;
     }
@@ -3834,24 +3506,17 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniform4i(location, v0, v1, v2, v3) {
-    if (!this._checkUniformValid(location, v0, "uniform4i", 4, "i")) return;
+    if (!this._checkUniformValid(location, v0, 'uniform4i', 4, 'i')) return;
     super.uniform4i(location._ | 0, v0, v1, v2, v3);
   }
 
   uniform4iv(location, value) {
-    if (!this._checkUniformValueValid(location, value, "uniform4iv", 4, "i"))
-      return;
+    if (!this._checkUniformValueValid(location, value, 'uniform4iv', 4, 'i')) return;
     if (location._array) {
       const locs = location._array;
       for (let i = 0; i < locs.length && 4 * i < value.length; ++i) {
         const loc = locs[i];
-        super.uniform4i(
-          loc,
-          value[4 * i],
-          value[4 * i + 1],
-          value[4 * i + 2],
-          value[4 * i + 3]
-        );
+        super.uniform4i(loc, value[4 * i], value[4 * i + 1], value[4 * i + 2], value[4 * i + 3]);
       }
       return;
     }
@@ -3859,11 +3524,11 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   _checkUniformMatrix(location, transpose, value, name, count) {
-    if (!checkObject(location) || typeof value !== "object") {
-      throw new TypeError(name + "(WebGLUniformLocation, Boolean, Array)");
+    if (!checkObject(location) || typeof value !== 'object') {
+      throw new TypeError(name + '(WebGLUniformLocation, Boolean, Array)');
     } else if (
       !!transpose ||
-      typeof value !== "object" ||
+      typeof value !== 'object' ||
       value === null ||
       !value.length ||
       (value.length % count) * count !== 0
@@ -3888,46 +3553,19 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   uniformMatrix2fv(location, transpose, value) {
-    if (
-      !this._checkUniformMatrix(
-        location,
-        transpose,
-        value,
-        "uniformMatrix2fv",
-        2
-      )
-    )
-      return;
+    if (!this._checkUniformMatrix(location, transpose, value, 'uniformMatrix2fv', 2)) return;
     const data = new Float32Array(value);
     super.uniformMatrix2fv(location._ | 0, !!transpose, data);
   }
 
   uniformMatrix3fv(location, transpose, value) {
-    if (
-      !this._checkUniformMatrix(
-        location,
-        transpose,
-        value,
-        "uniformMatrix3fv",
-        3
-      )
-    )
-      return;
+    if (!this._checkUniformMatrix(location, transpose, value, 'uniformMatrix3fv', 3)) return;
     const data = new Float32Array(value);
     super.uniformMatrix3fv(location._ | 0, !!transpose, data);
   }
 
   uniformMatrix4fv(location, transpose, value) {
-    if (
-      !this._checkUniformMatrix(
-        location,
-        transpose,
-        value,
-        "uniformMatrix4fv",
-        4
-      )
-    )
-      return;
+    if (!this._checkUniformMatrix(location, transpose, value, 'uniformMatrix4fv', 4)) return;
     const data = new Float32Array(value);
     super.uniformMatrix4fv(location._ | 0, !!transpose, data);
   }
@@ -3976,7 +3614,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   vertexAttrib1fv(index, value) {
-    if (typeof value !== "object" || value === null || value.length < 1) {
+    if (typeof value !== 'object' || value === null || value.length < 1) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -3989,7 +3627,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   vertexAttrib2fv(index, value) {
-    if (typeof value !== "object" || value === null || value.length < 2) {
+    if (typeof value !== 'object' || value === null || value.length < 2) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -4002,7 +3640,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   vertexAttrib3fv(index, value) {
-    if (typeof value !== "object" || value === null || value.length < 3) {
+    if (typeof value !== 'object' || value === null || value.length < 3) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -4015,7 +3653,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   vertexAttrib4fv(index, value) {
-    if (typeof value !== "object" || value === null || value.length < 4) {
+    if (typeof value !== 'object' || value === null || value.length < 4) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
@@ -4024,13 +3662,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     data[2] = value[2];
     data[1] = value[1];
     data[0] = value[0];
-    return super.vertexAttrib4f(
-      index | 0,
-      +value[0],
-      +value[1],
-      +value[2],
-      +value[3]
-    );
+    return super.vertexAttrib4f(index | 0, +value[0], +value[1], +value[2], +value[3]);
   }
 
   /**
@@ -4045,19 +3677,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ImageData source);
   // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ArrayBufferView? srcData);
   // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ArrayBufferView srcData, srcOffset);
-  texImage3D(
-    target,
-    level,
-    internalFormat,
-    width,
-    height,
-    depth,
-    border,
-    format,
-    type,
-    pixels,
-    srcOffset
-  ) {
+  texImage3D(target, level, internalFormat, width, height, depth, border, format, type, pixels, srcOffset) {
     target |= 0;
     level |= 0;
     internalFormat |= 0;
@@ -4069,10 +3689,8 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     type |= 0;
     srcOffset |= 0;
 
-    if (typeof pixels !== "object" && pixels !== undefined) {
-      throw new TypeError(
-        "texImage3D(GLenum, GLint, GLenum, GLint, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)"
-      );
+    if (typeof pixels !== 'object' && pixels !== undefined) {
+      throw new TypeError('texImage3D(GLenum, GLint, GLenum, GLint, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)');
     }
 
     if (!checkFormat(format) || !checkFormat(internalFormat)) {
@@ -4115,18 +3733,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
     // Need to check for out of memory error
     this._saveError();
-    super.texImage3D(
-      target,
-      level,
-      internalFormat,
-      width,
-      height,
-      depth,
-      border,
-      format,
-      type,
-      data
-    );
+    super.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, data);
     const error = this.getError();
     this._restoreError(error);
     if (error !== gl.NO_ERROR) {
@@ -4164,7 +3771,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   bindVertexArray(object) {
     if (!checkObject(object)) {
-      throw new TypeError("bindVertexArray(WebGLVertexArrayObject");
+      throw new TypeError('bindVertexArray(WebGLVertexArrayObject');
     }
 
     if (!object) {
@@ -4193,20 +3800,17 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   deleteVertexArray(object) {
     if (!checkObject(object)) {
-      throw new TypeError("deleteVertexArray(WebGLVertexArrayObject)");
+      throw new TypeError('deleteVertexArray(WebGLVertexArrayObject)');
     }
 
-    if (
-      !(object instanceof WebGLVertexArrayObject && this._checkOwns(object))
-    ) {
+    if (!(object instanceof WebGLVertexArrayObject && this._checkOwns(object))) {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
   }
 
   isVertexArray(object) {
-    if (!this._isObject(object, "isVertexArray", WebGLVertexArrayObject))
-      return false;
+    if (!this._isObject(object, 'isVertexArray', WebGLVertexArrayObject)) return false;
 
     return super.isVertexArray(object._ | 0);
   }
@@ -4226,13 +3830,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     super.texStorage2D(target, levels, internalformat, width, height);
   }
 
-  renderbufferStorageMultisample(
-    target,
-    samples,
-    internalFormat,
-    width,
-    height
-  ) {
+  renderbufferStorageMultisample(target, samples, internalFormat, width, height) {
     target |= 0;
     samples |= 0;
     internalFormat |= 0;
@@ -4291,13 +3889,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     this._saveError();
-    super.renderbufferStorageMultisample(
-      target,
-      samples,
-      internalFormat,
-      width,
-      height
-    );
+    super.renderbufferStorageMultisample(target, samples, internalFormat, width, height);
     const error = this.getError();
     this._restoreError(error);
     if (error !== gl.NO_ERROR) {
@@ -4338,39 +3930,17 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     super.drawBuffers(buffers);
   }
 
-  blitFramebuffer(
-    srcX0,
-    srcY0,
-    srcX1,
-    srcY1,
-    dstX0,
-    dstY0,
-    dstX1,
-    dstY1,
-    mask,
-    filter
-  ) {
+  blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) {
     if (!this._checkStencilState()) {
       return;
     }
-    super.blitFramebuffer(
-      srcX0,
-      srcY0,
-      srcX1,
-      srcY1,
-      dstX0,
-      dstY0,
-      dstX1,
-      dstY1,
-      mask,
-      filter
-    );
+    super.blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
   }
 }
 
 // Make the gl consts available as static properties
 for (const [key, value] of Object.entries(gl)) {
-  if (typeof value !== "number") {
+  if (typeof value !== 'number') {
     continue;
   }
   Object.assign(WebGLRenderingContext, { [key]: value });

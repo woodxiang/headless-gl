@@ -12,6 +12,10 @@ declare namespace createContext {
     getExtension(extensionName: 'STACKGL_resize_drawingbuffer'): STACKGL_resize_drawingbuffer | null;
   }
 
+  interface WebGLContextOptions {
+    isWebGL2: boolean;
+  }
+
   const WebGLRenderingContext: WebGLRenderingContext &
     StackGLExtension & {
       new (): WebGLRenderingContext & StackGLExtension;
@@ -22,7 +26,7 @@ declare namespace createContext {
 declare function createContext(
   width: number,
   height: number,
-  options?: WebGLContextAttributes
+  options?: WebGLContextAttributes | (WebGLContextAttributes & WebGLContextOptions)
 ): WebGLRenderingContext & createContext.StackGLExtension;
 
 export = createContext;

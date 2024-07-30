@@ -16,7 +16,4 @@ function getEXTTextureFilterAnisotropic(context) {
   return result;
 }
 
-module.exports = {
-  getEXTTextureFilterAnisotropic,
-  EXTTextureFilterAnisotropic,
-};
+module.exports = { getEXTTextureFilterAnisotropic, EXTTextureFilterAnisotropic };

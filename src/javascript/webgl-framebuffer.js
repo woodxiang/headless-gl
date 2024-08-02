@@ -29,7 +29,61 @@ class WebGLFramebuffer extends Linkable {
     this._attachmentFace[gl.STENCIL_ATTACHMENT] = 0;
     this._attachmentFace[gl.DEPTH_STENCIL_ATTACHMENT] = 0;
 
-    if (ctx._extensions.webgl_draw_buffers) {
+    if (ctx.isWebGL2) {
+      this._attachments[gl.COLOR_ATTACHMENT1] = null;
+      this._attachments[gl.COLOR_ATTACHMENT2] = null;
+      this._attachments[gl.COLOR_ATTACHMENT3] = null;
+      this._attachments[gl.COLOR_ATTACHMENT4] = null;
+      this._attachments[gl.COLOR_ATTACHMENT5] = null;
+      this._attachments[gl.COLOR_ATTACHMENT6] = null;
+      this._attachments[gl.COLOR_ATTACHMENT7] = null;
+      this._attachments[gl.COLOR_ATTACHMENT8] = null;
+      this._attachments[gl.COLOR_ATTACHMENT9] = null;
+      this._attachments[gl.COLOR_ATTACHMENT10] = null;
+      this._attachments[gl.COLOR_ATTACHMENT11] = null;
+      this._attachments[gl.COLOR_ATTACHMENT12] = null;
+      this._attachments[gl.COLOR_ATTACHMENT13] = null;
+      this._attachments[gl.COLOR_ATTACHMENT14] = null;
+      this._attachments[gl.COLOR_ATTACHMENT15] = null;
+      this._attachments[gl.NONE] = null;
+      this._attachments[gl.BACK] = null;
+
+      this._attachmentLevel[gl.COLOR_ATTACHMENT1] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT2] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT3] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT4] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT5] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT6] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT7] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT8] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT9] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT10] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT11] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT12] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT13] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT14] = 0;
+      this._attachmentLevel[gl.COLOR_ATTACHMENT15] = 0;
+      this._attachmentLevel[gl.NONE] = null;
+      this._attachmentLevel[gl.BACK] = null;
+
+      this._attachmentFace[gl.COLOR_ATTACHMENT1] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT2] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT3] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT4] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT5] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT6] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT7] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT8] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT9] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT10] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT11] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT12] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT13] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT14] = 0;
+      this._attachmentFace[gl.COLOR_ATTACHMENT15] = 0;
+      this._attachmentFace[gl.NONE] = null;
+      this._attachmentFace[gl.BACK] = null;
+    } else if (ctx._extensions.webgl_draw_buffers) {
       const { webgl_draw_buffers: WebGLDrawBuffers } = ctx._extensions; // eslint-disable-line
       this._attachments[WebGLDrawBuffers.COLOR_ATTACHMENT1_WEBGL] = null;
       this._attachments[WebGLDrawBuffers.COLOR_ATTACHMENT2_WEBGL] = null;

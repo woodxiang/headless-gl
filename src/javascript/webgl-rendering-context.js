@@ -477,7 +477,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         height.push(colorAttachment._levelHeight[level]);
       } else if (colorAttachment instanceof WebGLRenderbuffer) {
         const format = colorAttachment._format;
-        if (format !== gl.RGBA4 && format !== gl.RGB565 && format !== gl.RGB5_A1) {
+        if (!this._verifyRenderableInternalColorFormat(format)) {
           return gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
         }
         colorAttached = true;
@@ -2824,6 +2824,25 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
   }
 
+  _verifyRenderableInternalColorFormat(format) {
+    return format === gl.RGBA4 || format === gl.RGB565 || format === gl.RGB5_A1;
+  }
+
+  _verifyRenderableInternalDepthStencilFormat(format) {
+    return (
+      format === gl.DEPTH_COMPONENT16 ||
+      format === gl.STENCIL_INDEX ||
+      format === gl.STENCIL_INDEX8 ||
+      format === gl.DEPTH_STENCIL
+    );
+  }
+
+  _verifyRenderbufferStorageInternalFormat(format) {
+    return (
+      this._verifyRenderableInternalColorFormat(format) || this._verifyRenderableInternalDepthStencilFormat(format)
+    );
+  }
+
   renderbufferStorage(target, internalFormat, width, height) {
     target |= 0;
     internalFormat |= 0;
@@ -2841,15 +2860,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return;
     }
 
-    if (
-      internalFormat !== gl.RGBA4 &&
-      internalFormat !== gl.RGB565 &&
-      internalFormat !== gl.RGB5_A1 &&
-      internalFormat !== gl.DEPTH_COMPONENT16 &&
-      internalFormat !== gl.STENCIL_INDEX &&
-      internalFormat !== gl.STENCIL_INDEX8 &&
-      internalFormat !== gl.DEPTH_STENCIL
-    ) {
+    if (!this._verifyRenderbufferStorageInternalFormat(internalFormat)) {
       this.setError(gl.INVALID_ENUM);
       return;
     }

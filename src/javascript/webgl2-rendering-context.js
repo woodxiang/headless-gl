@@ -6,7 +6,7 @@ const { getSTACKGLDestroyContext } = require('./extensions/stackgl-destroy-conte
 const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-drawing-buffer');
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic');
 const { gl, NativeWebGLRenderingContext } = require('./native-gl');
-const { checkObject, validCubeTarget, unpackTypedArray } = require('./utils');
+const { checkObject, validCubeTarget, unpackTypedArray, extractImageData } = require('./utils');
 const { WebGL2DrawBuffers } = require('./webgl2-draw-buffers.js');
 const { WebGLFramebuffer } = require('./webgl-framebuffer.js');
 const { WebGLRenderbuffer } = require('./webgl-renderbuffer.js');
@@ -1416,8 +1416,21 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       return;
     }
 
+    if (buffers.length === 0) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+
     if (!this._checkStencilState()) {
       return;
+    }
+
+    const backIndex = buffers.indexOf(gl.BACK);
+    if (backIndex >= 0) {
+      buffers.splice(backIndex, 1);
+      if (buffers.length === 0) {
+        buffers.push(gl.NONE);
+      }
     }
 
     NativeWebGLRenderingContext.prototype.drawBuffers.call(this, buffers);
@@ -1442,5 +1455,7 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     );
   }
 }
+
+global.WebGL2RenderingContext = WebGL2RenderingContext;
 
 module.exports = { WebGL2RenderingContext };

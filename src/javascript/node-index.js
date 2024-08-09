@@ -91,7 +91,12 @@ function createContext(width, height, options) {
   ctx._renderbuffers = {};
 
   ctx._activeProgram = null;
-  ctx._activeFramebuffer = null;
+  if (isWebGL2) {
+    ctx._activeDrawFramebuffer = null;
+    ctx._activeReadFramebuffer = null;
+  } else {
+    ctx._activeFramebuffer = null;
+  }
   ctx._activeRenderbuffer = null;
   ctx._checkStencil = false;
   ctx._stencilState = true;

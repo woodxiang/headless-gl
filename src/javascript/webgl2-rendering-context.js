@@ -759,6 +759,8 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
   getParameter(pname) {
     pname |= 0;
     switch (pname) {
+      case gl.MAX_SAMPLES:
+      case gl.MAX_UNIFORM_BUFFER_BINDINGS:
       case gl.FRAMEBUFFER_BINDING:
       case gl.DRAW_FRAMEBUFFER_BINDING:
         return this._activeDrawFramebuffer;
@@ -924,7 +926,12 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     }
   }
 
-  // 2827
+  _verifyRenderbufferStorageInternalFormat(format) {
+    return (
+      this._verifyRenderableInternalColorFormat(format) || this._verifyRenderableInternalDepthStencilFormat(format)
+    );
+  }
+
   _verifyRenderableInternalColorFormat(format) {
     return (
       format === gl.RGBA4 ||
@@ -958,7 +965,6 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     );
   }
 
-  // 2831
   _verifyRenderableInternalDepthStencilFormat(format) {
     return (
       format === gl.DEPTH_COMPONENT16 ||
@@ -1405,7 +1411,6 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     renderbuffer._width = width;
     renderbuffer._height = height;
     renderbuffer._format = internalFormat;
-    renderbuffer._samples = samples;
 
     this._updateActiveFramebuffer(renderbuffer);
   }

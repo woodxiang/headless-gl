@@ -9,7 +9,6 @@ class WebGLRenderbuffer extends Linkable {
     this._width = 0;
     this._height = 0;
     this._format = 0;
-    this._samples = 0;
   }
 
   _performDelete() {

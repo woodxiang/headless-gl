@@ -288,7 +288,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         }
         return 2;
       case gl.FLOAT:
-        return 1;
+        return pixelSize * 4;
     }
     this.setError(gl.INVALID_ENUM);
     return 0;
@@ -477,7 +477,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         height.push(colorAttachment._levelHeight[level]);
       } else if (colorAttachment instanceof WebGLRenderbuffer) {
         const format = colorAttachment._format;
-        if (!this._verifyRenderableInternalColorFormat(format)) {
+        if (format !== gl.RGBA4 && format !== gl.RGB565 && format !== gl.RGB5_A1) {
           return gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
         }
         colorAttached = true;
@@ -2138,11 +2138,6 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       case gl.IMPLEMENTATION_COLOR_READ_TYPE:
         return super.getParameter(pname);
 
-      // webgl 2 parameters
-      case gl.MAX_SAMPLES:
-      case gl.MAX_UNIFORM_BUFFER_BINDINGS:
-        return super.getParameter(pname) | 0;
-
       default:
         if (this._extensions.webgl_draw_buffers) {
           const ext = this._extensions.webgl_draw_buffers;
@@ -2824,25 +2819,6 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
   }
 
-  _verifyRenderableInternalColorFormat(format) {
-    return format === gl.RGBA4 || format === gl.RGB565 || format === gl.RGB5_A1;
-  }
-
-  _verifyRenderableInternalDepthStencilFormat(format) {
-    return (
-      format === gl.DEPTH_COMPONENT16 ||
-      format === gl.STENCIL_INDEX ||
-      format === gl.STENCIL_INDEX8 ||
-      format === gl.DEPTH_STENCIL
-    );
-  }
-
-  _verifyRenderbufferStorageInternalFormat(format) {
-    return (
-      this._verifyRenderableInternalColorFormat(format) || this._verifyRenderableInternalDepthStencilFormat(format)
-    );
-  }
-
   renderbufferStorage(target, internalFormat, width, height) {
     target |= 0;
     internalFormat |= 0;
@@ -2860,7 +2836,15 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       return;
     }
 
-    if (!this._verifyRenderbufferStorageInternalFormat(internalFormat)) {
+    if (
+      internalFormat !== gl.RGBA4 &&
+      internalFormat !== gl.RGB565 &&
+      internalFormat !== gl.RGB5_A1 &&
+      internalFormat !== gl.DEPTH_COMPONENT16 &&
+      internalFormat !== gl.STENCIL_INDEX &&
+      internalFormat !== gl.STENCIL_INDEX8 &&
+      internalFormat !== gl.DEPTH_STENCIL
+    ) {
       this.setError(gl.INVALID_ENUM);
       return;
     }
@@ -3032,7 +3016,14 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
     // Need to check for out of memory error
     this._saveError();
-    super.texImage2D(target, level, internalFormat, width, height, border, format, type, data);
+
+    // support gl.FLOAT when use opengl es 3.0
+    let actualInternalFormat = internalFormat;
+    if (format === gl.RGBA && internalFormat === gl.RGBA && type === gl.FLOAT) {
+      // when use oes_texture_float, use gl.RGBA32F
+      actualInternalFormat = gl.RGBA32F;
+    }
+    super.texImage2D(target, level, actualInternalFormat, width, height, border, format, type, data);
     const error = this.getError();
     this._restoreError(error);
     if (error !== gl.NO_ERROR) {

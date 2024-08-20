@@ -5,6 +5,7 @@ const { getOESTextureFloatLinear } = require('./extensions/oes-texture-float-lin
 const { getSTACKGLDestroyContext } = require('./extensions/stackgl-destroy-context');
 const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-drawing-buffer');
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic');
+const { getEXTColorBufferFloat } = require('./extensions/ext-color-buffer-float.js');
 const { gl, NativeWebGLRenderingContext } = require('./native-gl');
 const { checkObject, validCubeTarget, unpackTypedArray, extractImageData } = require('./utils');
 const { WebGL2DrawBuffers } = require('./webgl2-draw-buffers.js');
@@ -18,6 +19,7 @@ const availableExtensions = {
   stackgl_destroy_context: getSTACKGLDestroyContext,
   stackgl_resize_drawingbuffer: getSTACKGLResizeDrawingBuffer,
   ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic,
+  ext_color_buffer_float: getEXTColorBufferFloat,
 };
 
 class WebGL2RenderingContext extends WebGLRenderingContext {
@@ -498,6 +500,9 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       exts.push('EXT_texture_filter_anisotropic');
     }
 
+    if (supportedExts.indexOf('EXT_color_buffer_float') >= 0) {
+      exts.push('EXT_color_buffer_float');
+    }
     return exts;
   }
 

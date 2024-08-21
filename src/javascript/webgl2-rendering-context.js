@@ -630,6 +630,84 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     texture._checkDelete();
   }
 
+  // 1717
+  drawElements(mode, count, type, ioffset) {
+    if (!this._activeVertexArray) {
+      super.drawElements(mode, count, type, ioffset);
+      return;
+    }
+    mode |= 0;
+    count |= 0;
+    type |= 0;
+    ioffset |= 0;
+
+    if (count < 0 || ioffset < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    if (!this._checkStencilState()) {
+      return;
+    }
+
+    let reducedCount = count;
+    switch (mode) {
+      case gl.TRIANGLES:
+        if (count % 3) {
+          reducedCount -= count % 3;
+        }
+        break;
+      case gl.LINES:
+        if (count % 2) {
+          reducedCount -= count % 2;
+        }
+        break;
+      case gl.POINTS:
+        break;
+      case gl.LINE_LOOP:
+      case gl.LINE_STRIP:
+        if (count < 2) {
+          this.setError(gl.INVALID_OPERATION);
+          return;
+        }
+        break;
+      case gl.TRIANGLE_FAN:
+      case gl.TRIANGLE_STRIP:
+        if (count < 3) {
+          this.setError(gl.INVALID_OPERATION);
+          return;
+        }
+        break;
+      default:
+        this.setError(gl.INVALID_ENUM);
+        return;
+    }
+
+    if (!this._framebufferOk()) {
+      return;
+    }
+
+    if (count === 0) {
+      this._checkVertexAttribState(0);
+      return;
+    }
+
+    if (reducedCount > 0) {
+      if (
+        this._vertexObjectState._attribs[0]._isPointer ||
+        (this._extensions.webgl_draw_buffers &&
+          this._extensions.webgl_draw_buffers._buffersState &&
+          this._extensions.webgl_draw_buffers._buffersState.length > 0)
+      ) {
+        return NativeWebGLRenderingContext.prototype.drawElements.call(this, mode, reducedCount, type, ioffset);
+      } else {
+        this._beginAttrib0Hack();
+        NativeWebGLRenderingContext.prototype._drawElementsInstanced.call(this, mode, reducedCount, type, ioffset, 1);
+        this._endAttrib0Hack();
+      }
+    }
+  }
+
   // 1863
   framebufferRenderbuffer(target, attachment, renderbufferTarget, renderbuffer) {
     target = target | 0;

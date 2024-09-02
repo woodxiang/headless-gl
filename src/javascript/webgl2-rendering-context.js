@@ -7,7 +7,7 @@ const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-d
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic');
 const { getEXTColorBufferFloat } = require('./extensions/ext-color-buffer-float.js');
 const { gl, NativeWebGLRenderingContext } = require('./native-gl');
-const { checkObject, validCubeTarget, unpackTypedArray, extractImageData } = require('./utils');
+const { checkObject, validCubeTarget, unpackTypedArray, extractImageData, vertexCount } = require('./utils');
 const { WebGL2DrawBuffers } = require('./webgl2-draw-buffers.js');
 const { WebGLFramebuffer } = require('./webgl-framebuffer.js');
 const { WebGLRenderbuffer } = require('./webgl-renderbuffer.js');
@@ -605,14 +605,13 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
 
     // FIXME: Does the texture get unbound from *all* framebuffers, or just the
     // active FBO?
-    const ctx = this;
     function tryDetach(framebuffer) {
       if (framebuffer && framebuffer._linked(texture)) {
-        const attachments = ctx._getAttachments();
+        const attachments = this._getAttachments();
         for (let i = 0; i < attachments.length; ++i) {
           const attachment = attachments[i];
           if (framebuffer._attachments[attachment] === texture) {
-            ctx.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, null);
+            this.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, null);
           }
         }
       }
@@ -628,6 +627,38 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     // Mark texture for deletion
     texture._pendingDelete = true;
     texture._checkDelete();
+  }
+
+  // 1669
+  drawArrays(mode, first, count) {
+    mode |= 0;
+    first |= 0;
+    count |= 0;
+
+    if (first < 0 || count < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    if (!this._checkStencilState()) {
+      return;
+    }
+
+    const reducedCount = vertexCount(mode, count);
+    if (reducedCount < 0) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+
+    if (!this._framebufferOk()) {
+      return;
+    }
+
+    if (count === 0) {
+      return;
+    }
+
+    return NativeWebGLRenderingContext.prototype.drawArrays.call(this, mode, first, reducedCount);
   }
 
   // 1717
@@ -693,18 +724,7 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     }
 
     if (reducedCount > 0) {
-      if (
-        this._vertexObjectState._attribs[0]._isPointer ||
-        (this._extensions.webgl_draw_buffers &&
-          this._extensions.webgl_draw_buffers._buffersState &&
-          this._extensions.webgl_draw_buffers._buffersState.length > 0)
-      ) {
-        return NativeWebGLRenderingContext.prototype.drawElements.call(this, mode, reducedCount, type, ioffset);
-      } else {
-        this._beginAttrib0Hack();
-        NativeWebGLRenderingContext.prototype._drawElementsInstanced.call(this, mode, reducedCount, type, ioffset, 1);
-        this._endAttrib0Hack();
-      }
+      return NativeWebGLRenderingContext.prototype.drawElements.call(this, mode, reducedCount, type, ioffset);
     }
   }
 
@@ -1541,6 +1561,117 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       mask,
       filter
     );
+  }
+
+  vertexAttribDivisor(index, divisor) {
+    index |= 0;
+    divisor |= 0;
+    if (divisor < 0 || index < 0 || index >= this._vertexObjectState._attribs.length) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+    const attrib = this._vertexObjectState._attribs[index];
+    attrib._divisor = divisor;
+    super._vertexAttribDivisor(index, divisor);
+  }
+
+  drawArraysInstanced(mode, first, count, primCount) {
+    mode |= 0;
+    first |= 0;
+    count |= 0;
+    primCount |= 0;
+    if (first < 0 || count < 0 || primCount < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+    if (!this._checkStencilState()) {
+      return;
+    }
+    const reducedCount = vertexCount(mode, count);
+    if (reducedCount < 0) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+    if (!this._framebufferOk()) {
+      return;
+    }
+    if (count === 0 || primCount === 0) {
+      return;
+    }
+    let maxIndex = first;
+    if (count > 0) {
+      maxIndex = (count + first - 1) >>> 0;
+    }
+
+    return super._drawArraysInstanced(mode, first, reducedCount, primCount);
+  }
+
+  drawElementsInstanced(mode, count, type, ioffset, primCount) {
+    mode |= 0;
+    count |= 0;
+    type |= 0;
+    ioffset |= 0;
+    primCount |= 0;
+
+    if (count < 0 || ioffset < 0 || primCount < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    if (!this._checkStencilState()) {
+      return;
+    }
+
+    const elementBuffer = this._vertexObjectState._elementArrayBufferBinding;
+    if (!elementBuffer) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    let reducedCount = count;
+    switch (mode) {
+      case gl.TRIANGLES:
+        if (count % 3) {
+          reducedCount -= count % 3;
+        }
+        break;
+      case gl.LINES:
+        if (count % 2) {
+          reducedCount -= count % 2;
+        }
+        break;
+      case gl.POINTS:
+        break;
+      case gl.LINE_LOOP:
+      case gl.LINE_STRIP:
+        if (count < 2) {
+          this.setError(gl.INVALID_OPERATION);
+          return;
+        }
+        break;
+      case gl.TRIANGLE_FAN:
+      case gl.TRIANGLE_STRIP:
+        if (count < 3) {
+          this.setError(gl.INVALID_OPERATION);
+          return;
+        }
+        break;
+      default:
+        this.setError(gl.INVALID_ENUM);
+        return;
+    }
+
+    if (!this._framebufferOk()) {
+      return;
+    }
+
+    if (count === 0 || primCount === 0) {
+      return;
+    }
+
+    if (reducedCount > 0) {
+      super._drawElementsInstanced(mode, reducedCount, type, ioffset, primCount);
+    }
   }
 }
 

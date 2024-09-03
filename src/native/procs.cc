@@ -144,4 +144,5 @@ void WebGLRenderingContext::initPointers()
 	glBindVertexArray = reinterpret_cast<PFNGLBINDVERTEXARRAYPROC>(eglGetProcAddress("glBindVertexArray"));
 	glIsVertexArray = reinterpret_cast<PFNGLISVERTEXARRAYPROC>(eglGetProcAddress("glIsVertexArray"));
 	glBlitFramebuffer = reinterpret_cast<PFNGLBLITFRAMEBUFFERPROC>(eglGetProcAddress("glBlitFramebuffer"));
+	glVertexAttribIPointer = reinterpret_cast<PFNGLVERTEXATTRIBIPOINTERPROC>(eglGetProcAddress("glVertexAttribIPointer"));
 }

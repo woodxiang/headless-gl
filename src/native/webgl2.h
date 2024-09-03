@@ -8,3 +8,4 @@ static NAN_METHOD(DeleteVertexArray);
 static NAN_METHOD(IsVertexArray);
 static NAN_METHOD(BindVertexArray);
 static NAN_METHOD(BlitFramebuffer);
+static NAN_METHOD(VertexAttribIPointer);

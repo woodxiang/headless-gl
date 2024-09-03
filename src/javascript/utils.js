@@ -182,10 +182,10 @@ function convertPixels(pixels) {
     if (pixels instanceof ArrayBuffer) {
       return new Uint8Array(pixels);
     } else if (
-      pixels instanceof Uint8Array ||
-      pixels instanceof Uint16Array ||
-      pixels instanceof Uint8ClampedArray ||
-      pixels instanceof Float32Array
+      pixels.constructor.name === 'Uint8Array' || // the TypedArray create from Napi does not work with 'instanceof'
+      pixels.constructor.name === 'Uint16Array' ||
+      pixels.constructor.name === 'Uint8ClampedArray' ||
+      pixels.constructor.name === 'Float32Array'
     ) {
       return unpackTypedArray(pixels);
     } else if (pixels instanceof Buffer) {

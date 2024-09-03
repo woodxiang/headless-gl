@@ -151,3 +151,21 @@ GL_METHOD(BlitFramebuffer)
 
     (inst->glBlitFramebuffer)(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 }
+
+GL_METHOD(VertexAttribIPointer)
+{
+    GL_BOILERPLATE;
+
+    GLint index = Nan::To<int32_t>(info[0]).ToChecked();
+    GLint size = Nan::To<int32_t>(info[1]).ToChecked();
+    GLenum type = Nan::To<int32_t>(info[2]).ToChecked();
+    GLint stride = Nan::To<int32_t>(info[4]).ToChecked();
+    size_t offset = Nan::To<uint32_t>(info[5]).ToChecked();
+
+    (inst->glVertexAttribIPointer)(
+        index,
+        size,
+        type,
+        stride,
+        reinterpret_cast<GLvoid *>(offset));
+}

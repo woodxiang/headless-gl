@@ -118,6 +118,35 @@ class WebGLVertexArrayObjectState {
     attrib._inputStride = inputStride;
     attrib._inputSize = inputSize;
   }
+
+  setVertexAttribIPointer(
+    buffer,
+    index,
+    pointerSize,
+    pointerOffset,
+    pointerStride,
+    pointerType,
+    inputStride,
+    inputSize
+  ) {
+    const attrib = this._attribs[index];
+    if (buffer !== attrib._pointerBuffer) {
+      if (attrib._pointerBuffer) {
+        attrib._pointerBuffer._refCount -= 1;
+        attrib._pointerBuffer._checkDelete();
+      }
+      if (buffer) {
+        buffer._refCount += 1;
+      }
+      attrib._pointerBuffer = buffer;
+    }
+    attrib._pointerSize = pointerSize;
+    attrib._pointerOffset = pointerOffset;
+    attrib._pointerStride = pointerStride;
+    attrib._pointerType = pointerType;
+    attrib._inputStride = inputStride;
+    attrib._inputSize = inputSize;
+  }
 }
 
 class WebGLVertexArrayGlobalState {

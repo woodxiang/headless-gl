@@ -7,7 +7,7 @@ const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-d
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic');
 const { getEXTColorBufferFloat } = require('./extensions/ext-color-buffer-float.js');
 const { gl, NativeWebGLRenderingContext } = require('./native-gl');
-const { checkObject, validCubeTarget, unpackTypedArray, extractImageData, vertexCount } = require('./utils');
+const { checkObject, validCubeTarget, unpackTypedArray, extractImageData, vertexCount, typeSize } = require('./utils');
 const { WebGL2DrawBuffers } = require('./webgl2-draw-buffers.js');
 const { WebGLFramebuffer } = require('./webgl-framebuffer.js');
 const { WebGLRenderbuffer } = require('./webgl-renderbuffer.js');
@@ -1672,6 +1672,75 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     if (reducedCount > 0) {
       super._drawElementsInstanced(mode, reducedCount, type, ioffset, primCount);
     }
+  }
+
+  vertexAttribIPointer(index, size, type, stride, offset) {
+    if (stride < 0 || offset < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    index |= 0;
+    size |= 0;
+    type |= 0;
+    stride |= 0;
+    offset |= 0;
+
+    if (
+      stride < 0 ||
+      offset < 0 ||
+      index < 0 ||
+      index >= this._vertexObjectState._attribs.length ||
+      !(size === 1 || size === 2 || size === 3 || size === 4)
+    ) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    if (this._vertexGlobalState._arrayBufferBinding === null) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    // fixed, int and unsigned int aren't allowed in WebGL
+    const byteSize = typeSize(type);
+    if (
+      byteSize === 0 ||
+      (type !== gl.INT &&
+        type !== gl.UNSIGNED_INT &&
+        type !== gl.UNSIGNED_BYTE &&
+        type !== gl.SHORT &&
+        type !== gl.UNSIGNED_SHORT)
+    ) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+
+    if (stride > 255 || stride < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    // stride and offset must be multiples of size
+    if (stride % byteSize !== 0 || offset % byteSize !== 0) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    // Call vertex attrib pointer
+    super.vertexAttribIPointer(index, size, type, stride, offset);
+
+    // Update the vertex state object and references.
+    this._vertexObjectState.setVertexAttribIPointer(
+      /* buffer */ this._vertexGlobalState._arrayBufferBinding,
+      /* index */ index,
+      /* pointerSize */ size * byteSize,
+      /* pointerOffset */ offset,
+      /* pointerStride */ stride || size * byteSize,
+      /* pointerType */ type,
+      /* inputStride */ stride,
+      /* inputSize */ size
+    );
   }
 }
 

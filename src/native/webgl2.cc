@@ -55,6 +55,50 @@ GL_METHOD(TexStorage2D)
     (inst->glTexStorage2D)(target, level, internalformat, width, height);
 }
 
+GL_METHOD(TexStorage3D)
+{
+    GL_BOILERPLATE;
+    GLenum target = Nan::To<int32_t>(info[0]).ToChecked();
+    GLint level = Nan::To<int32_t>(info[1]).ToChecked();
+    GLenum internalformat = Nan::To<int32_t>(info[2]).ToChecked();
+    GLsizei width = Nan::To<int32_t>(info[3]).ToChecked();
+    GLsizei height = Nan::To<int32_t>(info[4]).ToChecked();
+    GLsizei depth = Nan::To<int32_t>(info[5]).ToChecked();
+    (inst->glTexStorage3D)(target, level, internalformat, width, height, depth);
+}
+
+GL_METHOD(TexSubImage3D)
+{
+    GL_BOILERPLATE;
+
+    GLenum target = Nan::To<int32_t>(info[0]).ToChecked();
+    GLint level = Nan::To<int32_t>(info[1]).ToChecked();
+    GLint xoffset = Nan::To<int32_t>(info[2]).ToChecked();
+    GLint yoffset = Nan::To<int32_t>(info[3]).ToChecked();
+    GLint zoffset = Nan::To<int32_t>(info[4]).ToChecked();
+    GLsizei width = Nan::To<int32_t>(info[5]).ToChecked();
+    GLsizei height = Nan::To<int32_t>(info[6]).ToChecked();
+    GLsizei depth = Nan::To<int32_t>(info[7]).ToChecked();
+    GLenum format = Nan::To<int32_t>(info[8]).ToChecked();
+    GLint type = Nan::To<int32_t>(info[9]).ToChecked();
+    Nan::TypedArrayContents<unsigned char> pixels(info[10]);
+
+    if (inst->unpack_flip_y ||
+        inst->unpack_premultiply_alpha)
+    {
+        unsigned char *unpacked = inst->unpackPixels(
+            type, format, width, height, depth, *pixels);
+        (inst->glTexSubImage3D)(
+            target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, unpacked);
+        delete[] unpacked;
+    }
+    else
+    {
+        (inst->glTexSubImage3D)(
+            target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, *pixels);
+    }
+}
+
 GL_METHOD(RenderbufferStorageMultisample)
 {
     GL_BOILERPLATE;

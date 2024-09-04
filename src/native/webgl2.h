@@ -1,6 +1,8 @@
 // WebGL2
 static NAN_METHOD(TexImage3D);
 static NAN_METHOD(TexStorage2D);
+static NAN_METHOD(TexStorage3D);
+static NAN_METHOD(TexSubImage3D);
 static NAN_METHOD(RenderbufferStorageMultisample);
 static NAN_METHOD(DrawBuffers);
 static NAN_METHOD(CreateVertexArray);

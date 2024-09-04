@@ -167,6 +167,8 @@ NAN_MODULE_INIT(Init)
      */
     JS_GL_METHOD("texImage3D", TexImage3D);
     JS_GL_METHOD("texStorage2D", TexStorage2D);
+    JS_GL_METHOD("texStorage3D", TexStorage3D);
+    JS_GL_METHOD("texSubImage3D", TexSubImage3D);
     JS_GL_METHOD("renderbufferStorageMultisample", RenderbufferStorageMultisample);
     JS_GL_METHOD("drawBuffers", DrawBuffers);
     JS_GL_METHOD("createVertexArray", CreateVertexArray);

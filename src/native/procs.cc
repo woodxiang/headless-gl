@@ -137,6 +137,8 @@ void WebGLRenderingContext::initPointers()
 
 	glTexImage3D = reinterpret_cast<PFNGLTEXIMAGE3DPROC>(eglGetProcAddress("glTexImage3D"));
 	glTexStorage2D = reinterpret_cast<PFNGLTEXSTORAGE2DPROC>(eglGetProcAddress("glTexStorage2D"));
+	glTexStorage3D = reinterpret_cast<PFNGLTEXSTORAGE3DPROC>(eglGetProcAddress("glTexStorage3D"));
+	glTexSubImage3D = reinterpret_cast<PFNGLTEXSUBIMAGE3DPROC>(eglGetProcAddress("glTexSubImage3D"));
 	glRenderbufferStorageMultisample = reinterpret_cast<PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC>(eglGetProcAddress("glRenderbufferStorageMultisample"));
 	glDrawBuffers = reinterpret_cast<PFNGLDRAWBUFFERSPROC>(eglGetProcAddress("glDrawBuffers"));
 	glGenVertexArrays = reinterpret_cast<PFNGLGENVERTEXARRAYSPROC>(eglGetProcAddress("glGenVertexArrays"));

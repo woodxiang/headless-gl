@@ -30,6 +30,39 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     this._drawBuffers = new WebGL2DrawBuffers(this);
   }
 
+  // 72
+  _checkDimensions(target, width, height, depth, level) {
+    if (level < 0 || width < 0 || height < 0 || depth < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return false;
+    }
+    if (target === gl.TEXTURE_2D) {
+      if (width > this._maxTextureSize || height > this._maxTextureSize || level > this._maxTextureLevel) {
+        this.setError(gl.INVALID_VALUE);
+        return false;
+      }
+    } else if (target === gl.TEXTURE_3D || target === gl.TEXTURE_2D_ARRAY) {
+      if (
+        width > this._max3DTextureSize ||
+        height > this._max3DTextureSize ||
+        depth > this._max3DTextureSize ||
+        level > this._maxTextureLevel
+      ) {
+        this.setError(gl.INVALID_VALUE);
+        return false;
+      }
+    } else if (this._validCubeTarget(target)) {
+      if (width > this._maxCubeMapSize || height > this._maxCubeMapSize || level > this._maxCubeMapLevel) {
+        this.setError(gl.INVALID_VALUE);
+        return false;
+      }
+    } else {
+      this.setError(gl.INVALID_ENUM);
+      return false;
+    }
+    return true;
+  }
+
   // 121
   _checkShaderSource(shader) {
     const source = shader._source;
@@ -77,6 +110,34 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     return !errorStatus;
   }
 
+  // 195
+  _checkTextureTarget(target) {
+    const unit = this._getActiveTextureUnit();
+    let tex = null;
+    switch (target) {
+      case gl.TEXTURE_1D:
+        tex = unit._bind1D;
+        break;
+      case gl.TEXTURE_2D:
+        tex = unit._bind2D;
+        break;
+      case gl.TEXTURE_3D:
+        tex = unit._bind3D;
+        break;
+      case gl.TEXTURE_2D_ARRAY:
+        tex = unit._bind2DArray;
+        break;
+      case gl.TEXTURE_CUBE_MAP:
+        tex = unit._bindCube;
+        break;
+      default:
+        this.setError(gl.INVALID_ENUM);
+        return false;
+    }
+
+    return true;
+  }
+
   // 352
   _framebufferOk() {
     {
@@ -98,6 +159,24 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     return true;
   }
 
+  // 374
+  _getActiveTexture(target) {
+    const activeUnit = this._getActiveTextureUnit();
+    switch (target) {
+      case gl.TEXTURE_2D:
+        return activeUnit._bind2D;
+      case gl.TEXTURE_3D:
+        return activeUnit._bind3D;
+      case gl.TEXTURE_2D_ARRAY:
+        return activeUnit._bind2DArray;
+      case gl.TEXTURE_CUBE_MAP:
+        return activeUnit._bindCube;
+      default:
+        break;
+    }
+    return null;
+  }
+
   // 384
   _getAttachments() {
     return this._drawBuffers._ALL_ATTACHMENTS;
@@ -106,6 +185,22 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
   // 390
   _getColorAttachments() {
     return this._drawBuffers._ALL_COLOR_ATTACHMENTS;
+  }
+
+  // 400
+  _getTexImage(target) {
+    const unit = this._getActiveTextureUnit();
+    if (target === gl.TEXTURE_2D) {
+      return unit._bind2D;
+    } else if (target === gl.TEXTURE_3D) {
+      return unit._bind3D;
+    } else if (target === gl.TEXTURE_2D_ARRAY) {
+      return unit._bind2DArray;
+    } else if (validCubeTarget(target)) {
+      return unit._bindCube;
+    }
+    this.setError(gl.INVALID_ENUM);
+    return null;
   }
 
   // 411
@@ -415,6 +510,52 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     return attachment < gl.COLOR_ATTACHMENT0 + this._drawBuffers._maxDrawBuffers; // eslint-disable-line
   }
 
+  // 726
+  _validTextureTarget(target) {
+    return (
+      target === gl.TEXTURE_2D ||
+      target === gl.TEXTURE_CUBE_MAP ||
+      target === gl.TEXTURE_3D ||
+      target === gl.TEXTURE_2D_ARRAY
+    );
+  }
+
+  // 730
+  _verifyTextureCompleteness(target, pname, param) {
+    const unit = this._getActiveTextureUnit();
+    let texture = null;
+    if (target === gl.TEXTURE_2D) {
+      texture = unit._bind2D;
+    } else if (target === gl.TEXTURE_3D) {
+      texture = unit._bind3D;
+    } else if (target === gl.TEXTURE_2D_ARRAY) {
+      texture = unit._bind2DArray;
+    } else if (this._validCubeTarget(target)) {
+      texture = unit._bindCube;
+    }
+
+    // oes_texture_float but not oes_texture_float_linear
+    if (
+      !this._extensions.oes_texture_float_linear &&
+      texture &&
+      texture._type === gl.FLOAT &&
+      (pname === gl.TEXTURE_MAG_FILTER || pname === gl.TEXTURE_MIN_FILTER) &&
+      (param === gl.LINEAR ||
+        param === gl.LINEAR_MIPMAP_NEAREST ||
+        param === gl.NEAREST_MIPMAP_LINEAR ||
+        param === gl.LINEAR_MIPMAP_LINEAR)
+    ) {
+      texture._complete = false;
+      this.bindTexture(target, texture);
+      return;
+    }
+
+    if (texture && texture._complete === false) {
+      texture._complete = true;
+      this.bindTexture(target, texture);
+    }
+  }
+
   // 762
   _wrapShader(type, source) {
     return source;
@@ -470,6 +611,75 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     }
     if (framebuffer) {
       this._updateFramebufferAttachments(framebuffer);
+    }
+  }
+
+  //959
+  bindTexture(target, texture) {
+    target |= 0;
+
+    if (!checkObject(texture)) {
+      throw new TypeError('bindTexture(GLenum, WebGLTexture)');
+    }
+
+    if (!this._validTextureTarget(target)) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+
+    // Get texture id
+    let textureId = 0;
+    if (!texture) {
+      texture = null;
+    } else if (texture instanceof WebGLTexture && texture._pendingDelete) {
+      // Special case: error codes for deleted textures don't get set for some dumb reason
+      return;
+    } else if (this._checkWrapper(texture, WebGLTexture)) {
+      // Check binding mode of texture
+      if (texture._binding && texture._binding !== target) {
+        this.setError(gl.INVALID_OPERATION);
+        return;
+      }
+      texture._binding = target;
+
+      if (texture._complete) {
+        textureId = texture._ | 0;
+      }
+    } else {
+      return;
+    }
+
+    this._saveError();
+    NativeWebGLRenderingContext.prototype.bindTexture.call(this, target, textureId);
+    const error = this.getError();
+    this._restoreError(error);
+
+    if (error !== gl.NO_ERROR) {
+      return;
+    }
+
+    const activeUnit = this._getActiveTextureUnit();
+    const activeTex = this._getActiveTexture(target);
+
+    // Update references
+    if (activeTex !== texture) {
+      if (activeTex) {
+        activeTex._refCount -= 1;
+        activeTex._checkDelete();
+      }
+      if (texture) {
+        texture._refCount += 1;
+      }
+    }
+
+    if (target === gl.TEXTURE_2D) {
+      activeUnit._bind2D = texture;
+    } else if (target === gl.TEXTURE_3D) {
+      activeUnit._bind3D = texture;
+    } else if (target === gl.TEXTURE_2D_ARRAY) {
+      activeUnit._bind2DArray = texture;
+    } else if (target === gl.TEXTURE_CUBE_MAP) {
+      activeUnit._bindCube = texture;
     }
   }
 
@@ -596,6 +806,12 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       if (unit._bind2D === texture) {
         this.activeTexture(gl.TEXTURE0 + i);
         this.bindTexture(gl.TEXTURE_2D, null);
+      } else if (unit._bind2DArray === texture) {
+        this.activeTexture(gl.TEXTURE0 + i);
+        this.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+      } else if (unit._bind3D === texture) {
+        this.activeTexture(gl.TEXTURE0 + i);
+        this.bindTexture(gl.TEXTURE_3D, null);
       } else if (unit._bindCube === texture) {
         this.activeTexture(gl.TEXTURE0 + i);
         this.bindTexture(gl.TEXTURE_CUBE_MAP, null);
@@ -862,8 +1078,8 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
   getParameter(pname) {
     pname |= 0;
     switch (pname) {
-      case gl.MAX_SAMPLES:
-      case gl.MAX_UNIFORM_BUFFER_BINDINGS:
+      // case gl.MAX_SAMPLES:
+      // case gl.MAX_UNIFORM_BUFFER_BINDINGS:
       case gl.FRAMEBUFFER_BINDING:
       case gl.DRAW_FRAMEBUFFER_BINDING:
         return this._activeDrawFramebuffer;
@@ -1171,13 +1387,13 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
 
   // 2963
   // WebGL1
-  // texImage2D(target, level, internalformat, width, height, border, format, type, pixels)
-  // texImage2D(target, level, internalformat, format, type, pixels)
+  // texImage2D(target, level, internalFormat, width, height, border, format, type, pixels)
+  // texImage2D(target, level, internalFormat, format, type, pixels)
 
   // WebGL2
-  // texImage2D(target, level, internalformat, width, height, border, format, type, offset)
-  // texImage2D(target, level, internalformat, width, height, border, format, type, source)
-  // texImage2D(target, level, internalformat, width, height, border, format, type, srcData, srcOffset)
+  // texImage2D(target, level, internalFormat, width, height, border, format, type, offset)
+  // texImage2D(target, level, internalFormat, width, height, border, format, type, source)
+  // texImage2D(target, level, internalFormat, width, height, border, format, type, srcData, srcOffset)
 
   texImage2D(target, level, internalFormat, width, height, border, format, type, pixels, offset) {
     if (arguments.length === 6) {
@@ -1227,6 +1443,8 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
+
+    texture._internalFormat = internalFormat;
 
     const ps = pixelSize(internalFormat, type);
     if (ps === 0) {
@@ -1283,14 +1501,14 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
    * webgl2
    */
 
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, GLintptr offset);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, HTMLCanvasElement source);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, HTMLImageElement source);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, HTMLVideoElement source);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ImageBitmap source);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ImageData source);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ArrayBufferView? srcData);
-  // void gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, ArrayBufferView srcData, srcOffset);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, GLintptr offset);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, HTMLCanvasElement source);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, HTMLImageElement source);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, HTMLVideoElement source);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, ImageBitmap source);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, ImageData source);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, ArrayBufferView? srcData);
+  // void gl.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, ArrayBufferView srcData, srcOffset);
   texImage3D(target, level, internalFormat, width, height, depth, border, format, type, pixels, srcOffset) {
     target |= 0;
     level |= 0;
@@ -1317,6 +1535,8 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       this.setError(gl.INVALID_OPERATION);
       return;
     }
+
+    texture._internalFormat = internalFormat;
 
     const ps = pixelSize(internalFormat, type);
     if (ps === 0) {
@@ -1423,10 +1643,10 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
     return NativeWebGLRenderingContext.prototype.isVertexArray.call(this, object._ | 0);
   }
 
-  texStorage2D(target, levels, internalformat, width, height) {
+  texStorage2D(target, levels, internalFormat, width, height) {
     target |= 0;
     levels |= 0;
-    internalformat |= 0;
+    internalFormat |= 0;
     width |= 0;
     height |= 0;
 
@@ -1435,7 +1655,92 @@ class WebGL2RenderingContext extends WebGLRenderingContext {
       return;
     }
 
-    NativeWebGLRenderingContext.prototype.texStorage2D.call(this, target, levels, internalformat, width, height);
+    const texture = this._getTexImage(target);
+    if (!texture) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    texture._internalFormat = internalFormat;
+
+    NativeWebGLRenderingContext.prototype.texStorage2D.call(this, target, levels, internalFormat, width, height);
+  }
+
+  texStorage3D(target, levels, internalFormat, width, height, depth) {
+    target |= 0;
+    levels |= 0;
+    internalFormat |= 0;
+    width |= 0;
+    height |= 0;
+    depth |= 0;
+
+    if (target !== gl.TEXTURE_3D && target !== gl.TEXTURE_2D_ARRAY) {
+      this.setError(gl.INVALID_ENUM);
+      return;
+    }
+
+    const texture = this._getTexImage(target);
+    if (!texture) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    texture._internalFormat = internalFormat;
+
+    NativeWebGLRenderingContext.prototype.texStorage3D.call(this, target, levels, internalFormat, width, height, depth);
+  }
+
+  texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels) {
+    if (typeof pixels !== 'object') {
+      throw new TypeError('texSubImage3D(GLenum, GLint, GLint, GLint, GLint, GLint, GLenum, GLenum, Uint8Array)');
+    }
+
+    target |= 0;
+    level |= 0;
+    xoffset |= 0;
+    yoffset |= 0;
+    zoffset |= 0;
+    width |= 0;
+    height |= 0;
+    depth |= 0;
+    format |= 0;
+    type |= 0;
+
+    const texture = this._getTexImage(target);
+    if (!texture) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    if (!texture._internalFormat) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    const ps = pixelSize(texture._internalFormat, type);
+    if (ps === 0) {
+      return;
+    }
+
+    if (!this._checkDimensions(target, width, height, level)) {
+      return;
+    }
+
+    if (xoffset < 0 || yoffset < 0 || zoffset < 0) {
+      this.setError(gl.INVALID_VALUE);
+      return;
+    }
+
+    const data = convertPixels(pixels);
+    const rowStride = this._computeRowStride(width, ps);
+    const imageSize = rowStride * height * depth;
+
+    if (!data || data.length < imageSize) {
+      this.setError(gl.INVALID_OPERATION);
+      return;
+    }
+
+    super.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
   }
 
   renderbufferStorageMultisample(target, samples, internalFormat, width, height) {

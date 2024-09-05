@@ -14,8 +14,8 @@
   "scripts": {
     "test": "standard | snazzy && tape test/*.js | faucet",
     "rebuild": "node-gyp rebuild --verbose",
-    "prebuild": "prebuild --all --strip",
-    "install": "prebuild-install || node-gyp rebuild"
+    "prebuild": "prebuild -t 16.20.2 -t 18.20.4 -t 20.17.0 -t 22.8.0 --strip",
+    "install": "node-gyp-build"
   },
   "dependencies": {
     "bindings": "^1.5.0",
@@ -24,7 +24,7 @@
     "nan": "^2.18.0",
     "node-abi": "^3.56.0",
     "node-gyp": "^10.0.1",
-    "prebuild-install": "^7.1.1"
+    "node-gyp-build": "^4.8.2"
   },
   "devDependencies": {
     "angle-normals": "^1.0.0",

@@ -96,9 +96,9 @@
                             {
                                 "destination": "$(SolutionDir)$(ConfigurationName)",
                                 "files": [
-                                    "<(module_root_dir)/deps/windows/dll/<(target_arch)/libc++.dll",
-                                    "<(module_root_dir)/deps/windows/dll/<(target_arch)/third_party_abseil-cpp_absl.dll",
-                                    "<(module_root_dir)/deps/windows/dll/<(target_arch)/third_party_zlib.dll",
+                                    # "<(module_root_dir)/deps/windows/dll/<(target_arch)/libc++.dll",
+                                    # "<(module_root_dir)/deps/windows/dll/<(target_arch)/third_party_abseil-cpp_absl.dll",
+                                    # "<(module_root_dir)/deps/windows/dll/<(target_arch)/third_party_zlib.dll",
                                     "<(module_root_dir)/deps/windows/dll/<(target_arch)/dawn_native.dll",
                                     "<(module_root_dir)/deps/windows/dll/<(target_arch)/dawn_platform.dll",
                                     "<(module_root_dir)/deps/windows/dll/<(target_arch)/dawn_proc.dll",

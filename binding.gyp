@@ -44,9 +44,22 @@
                 [
                     'OS=="linux"',
                     {
-                        "dependencies": [
-                            "angle/src/angle.gyp:libEGL",
-                            "angle/src/angle.gyp:libGLESv2",
+                        "libraries":["-L.","-lEGL", "-lGLESv2"],
+                        "ldflags": ["-Wl,-rpath,'$$ORIGIN'"],
+                        "copies" : [
+                            {
+                                "files":[
+                                    "deps/linux/libEGL.so",
+                                    "deps/linux/libGLESv2.so",
+                                    "deps/linux/libdawn_native.so",
+                                    "deps/linux/libdawn_platform.so",
+                                    "deps/linux/libdawn_proc.so",
+                                    # "deps/linux/libthird_party_abseil-cpp_absl.so",
+                                    # "deps/linux/libc++.so",
+                                    # "deps/linux/libchrome_zlib.so"
+                                ],
+                                "destination":"<(PRODUCT_DIR)"
+                            }
                         ]
                     },
                 ],

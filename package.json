@@ -1,6 +1,6 @@
 {
   "name": "supreium-headless-gl",
-  "version": "8.0.3",
+  "version": "8.0.4",
   "description": "Creates a WebGL context without a window",
   "main": "index.js",
   "types": "index.d.ts",

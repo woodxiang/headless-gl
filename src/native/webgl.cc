@@ -2169,7 +2169,11 @@ GL_METHOD(DrawBuffersWEBGL)
 
   for (GLuint i = 0; i < numBuffers; i++)
   {
+#if NODE_MAJOR_VERSION >= 10
     buffers[i] = Nan::Get(buffersArray, i).ToLocalChecked()->Uint32Value(Nan::GetCurrentContext()).ToChecked();
+#else
+    buffers[i] = Nan::Get(buffersArray, i).ToLocalChecked()->Uint32Value();
+#endif
   }
 
   (inst->glDrawBuffersEXT)(numBuffers, buffers);

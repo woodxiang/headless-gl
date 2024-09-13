@@ -1,6 +1,6 @@
 {
   "name": "supreium-headless-gl",
-  "version": "8.0.2",
+  "version": "8.0.3",
   "description": "Creates a WebGL context without a window",
   "main": "index.js",
   "types": "index.d.ts",
@@ -39,7 +39,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/stackgl/headless-gl.git"
+    "url": "git@github.com:woodxiang/headless-gl.git"
   },
   "keywords": [
     "webgl",
@@ -51,5 +51,14 @@
   ],
   "author": "Mikola Lysenko",
   "license": "BSD-2-Clause",
-  "gypfile": true
+  "gypfile": true,
+  "files": [
+    "angle/include",
+    "deps",
+    "prebuilds",
+    "src",
+    "index.d.ts",
+    "binding.gyp",
+    "README.md"
+  ]
 }

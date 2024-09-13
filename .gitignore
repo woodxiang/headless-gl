@@ -8,11 +8,6 @@ Debug
 node_modules
 angle/build/*
 example/**/*.ppm
-4.6.1
-5.12.0
-6.9.1
-7.0.0
-7.4.0
-8.1.3
+*.tgz
 yarn.lock
 .DS_Store

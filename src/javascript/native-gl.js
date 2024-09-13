@@ -1,4 +1,5 @@
-const NativeWebGL = require('bindings')('webgl');
+const path = require('path');
+const NativeWebGL = require('node-gyp-build')(path.join(__dirname, '../../'));
 const { WebGLRenderingContext: NativeWebGLRenderingContext } = NativeWebGL;
 process.on('exit', NativeWebGL.cleanup);
 

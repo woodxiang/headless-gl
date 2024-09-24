@@ -26,11 +26,14 @@
                 [
                     'OS=="mac"',
                     {
-                        "dependencies": [
-                            "angle/src/angle.gyp:libEGL",
-                            "angle/src/angle.gyp:libGLESv2",
+                        "libraries": [
+                            "-framework QuartzCore", 
+                            "-framework Quartz", 
+                            "-Wl,-rpath,@loader_path",   
+                            "-Wl,-rpath,@loader_path/..",     
+                            "-lEGL", 
+                            "-lGLESv2"
                         ],
-                        "libraries": ["-framework QuartzCore", "-framework Quartz"],
                         "xcode_settings": {
                             "GCC_ENABLE_CPP_RTTI": "YES",
                             "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
@@ -39,6 +42,25 @@
                             "CLANG_CXX_LANGUAGE_STANDARD": "c++17",
                             "GCC_VERSION": "com.apple.compilers.llvm.clang.1_0",
                         },
+                        "copies" : [
+                            {
+                                "files":[
+                                    "deps/darwin/libEGL.dylib",
+                                    "deps/darwin/libGLESv2.dylib",
+                                ],
+                                "destination":"<(PRODUCT_DIR)"
+                            }
+                        ],
+                        "postbuilds": [
+                            {
+                                "postbuild_name": 'Change libEGL load path',
+                                "action": ['install_name_tool', '-change',  './libEGL.dylib', '@loader_path/libEGL.dylib', '<(PRODUCT_DIR)/webgl.node'],
+                            },
+                            {
+                                "postbuild_name": 'Change libGLESv2 load path',
+                                "action": ['install_name_tool', '-change',  './libGLESv2.dylib', '@loader_path/libGLESv2.dylib', '<(PRODUCT_DIR)/webgl.node'],
+                            },
+                        ],
                     },
                 ],
                 [

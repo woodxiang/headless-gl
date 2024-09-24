@@ -7,6 +7,8 @@
 
 It aspires to fully conform to the [WebGL 1.0.3 specification](https://www.khronos.org/registry/webgl/specs/1.0.3/).
 
+With WebGL2 support (in progress)
+
 ## Example
 
 ```javascript

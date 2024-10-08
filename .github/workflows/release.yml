@@ -1,0 +1,57 @@
+name: Prebuild, Create Release, Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  prebuild:
+    strategy:
+      matrix:
+        node-version: [22.x]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        target: ["18.0.0", "20.0.0", "22.0.0"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - if: runner.os == 'Linux'
+        run: sudo apt-get install -y build-essential libgl1-mesa-dri libglapi-mesa
+                                     libglew-dev libglu1-mesa-dev libosmesa6
+                                     libxi-dev mesa-utils pkg-config
+      - run: npm ci
+      - name: Prebuild and Publish
+        shell: bash
+        run: node ./node_modules/prebuild/bin.js -t ${{ matrix.target }} --strip -u ${{ secrets.GITHUB_TOKEN }} --verbose
+      - name: Prebuild and Publish (musl)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: node ./node_modules/prebuild/bin.js --libc=musl -t ${{ matrix.target }} --strip -u ${{ secrets.GITHUB_TOKEN }} --verbose
+
+  publish:
+    name: Publish to NPM
+    needs:
+      - prebuild
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

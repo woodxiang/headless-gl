@@ -11,13 +11,13 @@ matrix:
     dist: focal
     compiler: g++
     env:
-      - NODE_VERSION=18
+      - NODE_VERSION=20
   - os: linux
     sudo: required
     dist: focal
     compiler: g++
     env:
-      - NODE_VERSION=20
+      - NODE_VERSION=22
   # - os: osx
   #   osx_image: xcode13.4
   #   compiler: clang

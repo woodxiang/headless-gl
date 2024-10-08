@@ -12,6 +12,7 @@ const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-d
 const { getWebGLDrawBuffers } = require('./extensions/webgl-draw-buffers');
 const { getEXTBlendMinMax } = require('./extensions/ext-blend-minmax');
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic');
+const { getEXTShaderTextureLod } = require('./extensions/ext-shader-texture-lod');
 const { getOESVertexArrayObject } = require('./extensions/oes-vertex-array-object');
 const {
   checkObject,
@@ -65,6 +66,7 @@ const availableExtensions = {
   webgl_draw_buffers: getWebGLDrawBuffers,
   ext_blend_minmax: getEXTBlendMinMax,
   ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic,
+  ext_shader_texture_lod: getEXTShaderTextureLod,
 };
 
 // We need to wrap some of the native WebGL functions to handle certain error codes and check input values
@@ -1132,6 +1134,10 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (supportedExts.indexOf('GL_OES_vertex_array_object') >= 0) {
       exts.push('OES_vertex_array_object');
+    }
+
+    if (supportedExts.indexOf('GL_EXT_shader_texture_lod') >= 0) {
+      exts.push('EXT_shader_texture_lod');
     }
 
     return exts;
